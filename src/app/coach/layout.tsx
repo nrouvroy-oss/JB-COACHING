@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { LogoutButton } from '@/components/auth/logout-button'
 
 export default async function CoachLayout({
   children,
@@ -21,13 +22,15 @@ export default async function CoachLayout({
           <Link href="/coach" className="text-lg font-bold text-gray-900">
             Coach JB
           </Link>
-          <div className="flex gap-4">
+          <div className="flex items-center gap-4">
             <Link href="/coach" className="text-sm text-gray-600 hover:text-gray-900">
               Clients
             </Link>
             <Link href="/coach/exercises" className="text-sm text-gray-600 hover:text-gray-900">
               Exercices
             </Link>
+            {/* Bouton de déconnexion dans la navigation */}
+            <LogoutButton />
           </div>
         </div>
       </nav>
