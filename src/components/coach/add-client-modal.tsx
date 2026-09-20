@@ -36,12 +36,54 @@ export function AddClientModal({ onClose }: AddClientModalProps) {
   return (
     <Modal title="Ajouter un client" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input label="Nom complet" id="full_name" name="full_name" required placeholder="Jean Dupont" />
+        {/* Champs obligatoires — prénom et nom séparés */}
+        <div className="grid grid-cols-2 gap-3">
+          <Input label="Prénom" id="first_name" name="first_name" required placeholder="Jean" />
+          <Input label="Nom" id="last_name" name="last_name" required placeholder="Dupont" />
+        </div>
         <Input label="Email" id="email" name="email" type="email" required placeholder="jean@email.com" />
-        <Input label="Mot de passe temporaire" id="password" name="password" type="text" required placeholder="min. 6 caractères" minLength={6} />
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <p className="text-xs text-[#888] -mt-2">Le client recevra un email pour créer son mot de passe</p>
+
+        {/* Champs optionnels */}
+        <Input label="Téléphone (optionnel)" id="phone" name="phone" type="tel" placeholder="06 12 34 56 78" />
+        <Input label="Date de naissance (optionnel)" id="birth_date" name="birth_date" type="date" />
+
+        {/* Sélecteur d'objectif */}
+        <div>
+          <label htmlFor="objective" className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">
+            Objectif (optionnel)
+          </label>
+          <select
+            id="objective"
+            name="objective"
+            className="w-full px-3 py-2 bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] focus:border-[#d4ff00] text-white text-sm transition-colors"
+          >
+            <option value="">— Sélectionner un objectif —</option>
+            <option value="Prise de masse">Prise de masse</option>
+            <option value="Perte de poids">Perte de poids</option>
+            <option value="Remise en forme">Remise en forme</option>
+            <option value="Performance">Performance</option>
+            <option value="Rééducation">Rééducation</option>
+          </select>
+        </div>
+
+        {/* Notes libres */}
+        <div>
+          <label htmlFor="notes" className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">
+            Notes (optionnel)
+          </label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows={3}
+            placeholder="Blessures, conditions médicales, remarques..."
+            className="w-full px-3 py-2 bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] focus:border-[#d4ff00] text-white placeholder:text-[#777] text-sm transition-colors resize-none"
+          />
+        </div>
+
+        {error && <p className="text-red-400 text-sm">{error}</p>}
         <Button type="submit" disabled={loading} className="w-full">
-          {loading ? 'Création...' : 'Créer le compte client'}
+          {loading ? 'Envoi de l\'invitation...' : 'Inviter le client'}
         </Button>
       </form>
     </Modal>

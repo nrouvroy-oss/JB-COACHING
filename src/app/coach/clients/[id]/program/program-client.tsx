@@ -1,30 +1,66 @@
 'use client'
 
-// Wrapper client pour la page programme — gère la création d'un programme si absent
+// Wrapper client pour la page programme — création, duplication depuis un autre client
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ProgramEditor } from '@/components/coach/program-editor'
-import { createProgram } from './actions'
+import { createProgram, duplicateProgram } from './actions'
 import type { Profile, Exercise, ProgramWithWeeks } from '@/lib/types'
+
+interface ExistingClientProgram {
+  id: string
+  name: string
+  client_name: string
+}
+
+interface WorkoutExerciseItem {
+  id: string
+  order_index: number
+  coach_notes: string
+  exercise: { id: string; name: string; category: string; video_url: string }
+}
+
+interface WorkoutOption {
+  id: string
+  name: string
+  workout_exercises: WorkoutExerciseItem[]
+}
 
 interface ProgramPageClientProps {
   client: Profile
   program: ProgramWithWeeks | null
   exercises: Exercise[]
+  workouts?: WorkoutOption[]
+  otherClientPrograms?: ExistingClientProgram[]
 }
 
-export function ProgramPageClient({ client, program, exercises }: ProgramPageClientProps) {
+export function ProgramPageClient({ client, program, exercises, workouts = [], otherClientPrograms = [] }: ProgramPageClientProps) {
   const [showCreate, setShowCreate] = useState(false)
+  const [showCopy, setShowCopy] = useState(false)
   const [programName, setProgramName] = useState('')
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   async function handleCreate() {
     if (!programName.trim()) return
+    setLoading(true)
     await createProgram(client.id, programName)
     setProgramName('')
     setShowCreate(false)
+    setLoading(false)
+    router.refresh()
+  }
+
+  async function handleCopy(sourceProgramId: string, sourceName: string) {
+    const name = programName.trim() || sourceName
+    setLoading(true)
+    await duplicateProgram(sourceProgramId, client.id, name)
+    setProgramName('')
+    setShowCopy(false)
+    setLoading(false)
     router.refresh()
   }
 
@@ -33,17 +69,28 @@ export function ProgramPageClient({ client, program, exercises }: ProgramPageCli
       {/* En-tête avec les informations du client */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{client.full_name}</h1>
-          <p className="text-sm text-gray-500">{client.email}</p>
+          <h1 className="text-2xl font-bold text-white">
+            {(client.first_name && client.last_name)
+              ? `${client.first_name} ${client.last_name}`
+              : client.full_name}
+          </h1>
+          <p className="text-sm text-[#888]">{client.email}</p>
         </div>
+        <Link
+          href={`/coach/clients/${client.id}`}
+          className="text-sm text-[#888] hover:text-[#d4ff00] font-medium transition-colors border border-[#2a2a2a] hover:border-[#d4ff00]/30 rounded-lg px-3 py-1.5"
+        >
+          Fiche client
+        </Link>
       </div>
 
       {/* Affiche l'éditeur ou le formulaire de création */}
       {program ? (
-        <ProgramEditor program={program} exercises={exercises} />
+        <ProgramEditor program={program} exercises={exercises} workouts={workouts} />
       ) : (
         <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">Aucun programme actif pour ce client.</p>
+          <p className="text-[#888] mb-4">Aucun programme actif pour ce client.</p>
+
           {showCreate ? (
             <div className="max-w-sm mx-auto space-y-3">
               <Input
@@ -51,15 +98,54 @@ export function ProgramPageClient({ client, program, exercises }: ProgramPageCli
                 id="program-name"
                 value={programName}
                 onChange={(e) => setProgramName(e.target.value)}
-                placeholder="Ex: Remise en forme - Septembre"
+                placeholder="Ex: Force — Cycle 1"
               />
               <div className="flex gap-2">
-                <Button onClick={handleCreate} className="flex-1">Créer</Button>
-                <Button variant="secondary" onClick={() => setShowCreate(false)}>Annuler</Button>
+                <Button onClick={handleCreate} disabled={loading} className="flex-1">
+                  {loading ? 'Création...' : 'Créer'}
+                </Button>
+                <Button variant="secondary" onClick={() => { setShowCreate(false); setProgramName('') }}>Annuler</Button>
               </div>
             </div>
+          ) : showCopy ? (
+            <div className="max-w-sm mx-auto space-y-4 text-left">
+              <Input
+                label="Renommer (optionnel)"
+                id="program-name-copy"
+                value={programName}
+                onChange={(e) => setProgramName(e.target.value)}
+                placeholder="Laisse vide pour garder le même nom"
+              />
+              <p className="text-sm font-medium text-[#ccc]">Copier le plan de :</p>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {otherClientPrograms.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => handleCopy(p.id, p.name)}
+                    disabled={loading}
+                    className="w-full text-left p-3 bg-[#1c1c1c] rounded-xl border border-[#2a2a2a] hover:border-[#d4ff00]/30 hover:bg-[#d4ff00]/5 transition-all disabled:opacity-40"
+                  >
+                    <p className="font-medium text-white">{p.name}</p>
+                    <p className="text-xs text-[#888]">{p.client_name}</p>
+                  </button>
+                ))}
+                {otherClientPrograms.length === 0 && (
+                  <p className="text-sm text-[#777] text-center py-4">Aucun plan à copier</p>
+                )}
+              </div>
+              <Button variant="secondary" onClick={() => { setShowCopy(false); setProgramName('') }} className="w-full">
+                Annuler
+              </Button>
+            </div>
           ) : (
-            <Button onClick={() => setShowCreate(true)}>Créer un programme</Button>
+            <div className="flex flex-col gap-3 max-w-xs mx-auto">
+              <Button onClick={() => setShowCreate(true)}>Créer un programme</Button>
+              {otherClientPrograms.length > 0 && (
+                <Button variant="secondary" onClick={() => setShowCopy(true)}>
+                  Copier depuis un autre client
+                </Button>
+              )}
+            </div>
           )}
         </div>
       )}

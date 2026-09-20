@@ -56,14 +56,22 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
     <div>
       {/* Navigation entre les vues coach */}
       <div className="flex items-center justify-between mb-4">
-        <Link href={`/coach/clients/${clientId}/program`} className="text-sm text-blue-600">
+        <Link href={`/coach/clients/${clientId}/program`} className="text-sm text-orange-500 hover:text-orange-600 transition-colors">
           ← Programme
         </Link>
-        <Link href="/coach" className="text-sm text-blue-600">
+        <Link href="/coach" className="text-sm text-orange-500 hover:text-orange-600 transition-colors">
           Tableau de bord →
         </Link>
       </div>
-      <TrackingView weeks={weeks} clientName={client.full_name} />
+      {/* Passe le nom complet construit depuis first_name/last_name, repli sur full_name */}
+      <TrackingView
+        weeks={weeks}
+        clientName={
+          (client.first_name && client.last_name)
+            ? `${client.first_name} ${client.last_name}`
+            : client.full_name
+        }
+      />
     </div>
   )
 }

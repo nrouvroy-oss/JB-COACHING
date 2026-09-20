@@ -1,0 +1,8 @@
+-- Migration : ajout des champs de profil client
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS birth_date DATE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS gender TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS height_cm INTEGER;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS weight_kg NUMERIC;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS objective TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notes TEXT;

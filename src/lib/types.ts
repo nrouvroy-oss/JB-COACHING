@@ -6,9 +6,20 @@ export type ProgramStatus = 'active' | 'completed'
 export interface Profile {
   id: string
   email: string
-  full_name: string
+  full_name: string   // Conservé pour compatibilité ascendante
+  first_name?: string | null
+  last_name?: string | null
   role: UserRole
   created_at: string
+  // Champs optionnels du profil client
+  phone?: string | null
+  birth_date?: string | null
+  gender?: string | null
+  height_cm?: number | null
+  weight_kg?: number | null
+  objective?: string | null
+  notes?: string | null
+  coach_id?: string | null
 }
 
 export interface Exercise {
@@ -42,6 +53,8 @@ export interface Session {
   name: string
   day_of_week: string
   order_index: number
+  details?: string
+  recovery?: string
 }
 
 export interface SessionExercise {
@@ -51,8 +64,34 @@ export interface SessionExercise {
   sets: number
   reps: string
   rest_seconds: number
+  duration_seconds?: number | null
   coach_notes: string
   order_index: number
+}
+
+// Programme réutilisable (Muscu 3, TRX, Vélo...)
+export interface Workout {
+  id: string
+  name: string
+  coach_id: string
+  description: string
+  created_at: string
+}
+
+export interface WorkoutExercise {
+  id: string
+  workout_id: string
+  exercise_id: string
+  order_index: number
+  coach_notes: string
+}
+
+export interface WorkoutExerciseWithDetails extends WorkoutExercise {
+  exercise: Exercise
+}
+
+export interface WorkoutWithExercises extends Workout {
+  workout_exercises: WorkoutExerciseWithDetails[]
 }
 
 export interface ExerciseLog {

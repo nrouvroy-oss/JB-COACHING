@@ -18,7 +18,7 @@ export function FeedbackInput({ initialValue, onSubmit }: FeedbackInputProps) {
     return (
       <button
         onClick={() => setEditing(true)}
-        className="text-sm text-blue-600 hover:text-blue-800"
+        className="text-sm text-[#d4ff00] hover:text-[#c2ee00] transition-colors"
       >
         + Laisser un commentaire
       </button>
@@ -28,8 +28,8 @@ export function FeedbackInput({ initialValue, onSubmit }: FeedbackInputProps) {
   // Afficher le commentaire existant avec option de modification
   if (!editing && value) {
     return (
-      <button onClick={() => setEditing(true)} className="text-sm text-gray-600 italic">
-        &quot;{value}&quot; <span className="text-blue-600 ml-1">modifier</span>
+      <button onClick={() => setEditing(true)} className="text-sm text-[#888] italic">
+        &quot;{value}&quot; <span className="text-[#d4ff00] ml-1">modifier</span>
       </button>
     )
   }
@@ -41,7 +41,7 @@ export function FeedbackInput({ initialValue, onSubmit }: FeedbackInputProps) {
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Trop facile, douleur au genou..."
-        className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-sm"
+        className="flex-1 px-3 py-1.5 bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] focus:border-[#d4ff00] placeholder:text-[#777]"
         autoFocus
       />
       <Button

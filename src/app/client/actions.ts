@@ -29,6 +29,31 @@ export async function toggleExercise(sessionExerciseId: string, clientId: string
   return {}
 }
 
+// Marquer une séance comme complétée ou non
+export async function toggleSession(sessionId: string, completed: boolean) {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Non autorisé' }
+
+  // Utilise le client authentifié — la policy RLS "Le client gère ses session_logs"
+  // autorise via USING (client_id = auth.uid()) et WITH CHECK (client_id = auth.uid())
+  const { error } = await supabase
+    .from('session_logs')
+    .upsert(
+      {
+        session_id: sessionId,
+        client_id: user.id,
+        completed,
+        completed_at: completed ? new Date().toISOString() : null,
+      },
+      { onConflict: 'session_id,client_id' }
+    )
+
+  if (error) return { error: 'Erreur lors de la mise à jour' }
+  revalidatePath('/client')
+  return {}
+}
+
 // Enregistrer le commentaire d'un client sur un exercice
 export async function submitFeedback(sessionExerciseId: string, clientId: string, feedback: string) {
   const supabase = await createServerClient()

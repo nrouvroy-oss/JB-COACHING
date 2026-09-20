@@ -1,73 +1,147 @@
-// Tableau de bord coach — récupère les données côté serveur et délègue l'affichage au composant client
+// Tableau de bord coach — requêtes optimisées
 import { createServerClient } from '@/lib/supabase/server'
 import { CoachDashboardClient } from './dashboard-client'
+import { getMondayOfThisWeek } from '@/lib/date-utils'
 
 export default async function CoachDashboard() {
   const supabase = await createServerClient()
 
-  // Récupérer tous les clients triés par nom
-  const { data: clients } = await supabase
+  // Récupérer le prénom du coach
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: coachProfile } = user ? await supabase
     .from('profiles')
-    .select('*')
+    .select('first_name, full_name')
+    .eq('id', user.id)
+    .single() : { data: null }
+
+  const coachFirstName = coachProfile?.first_name ?? coachProfile?.full_name?.split(' ')[0] ?? 'Coach'
+
+  // ── 1. Les clients de ce coach ──
+  const { data: allClients } = await supabase
+    .from('profiles')
+    .select('id, first_name, last_name, full_name')
     .eq('role', 'client')
-    .order('full_name')
+    .eq('coach_id', user!.id)
 
-  // Récupérer les programmes actifs avec leurs statistiques de complétion
-  const { data: programs } = await supabase
-    .from('programs')
-    .select('id, client_id, status')
-    .eq('status', 'active')
+  const clientCount = allClients?.length ?? 0
 
-  // Calculer le pourcentage de complétion pour chaque programme actif
-  const clientStats = new Map<string, { status: string; percent: number }>()
+  // IDs des clients de ce coach (pour filtrer les requêtes suivantes)
+  const myClientIds = (allClients ?? []).map(c => c.id)
 
-  if (programs) {
-    for (const program of programs) {
-      // Récupérer les IDs des semaines du programme
-      const { data: weeks } = await supabase
-        .from('weeks')
-        .select('id')
-        .eq('program_id', program.id)
-
-      const weekIds = weeks?.map(w => w.id) ?? []
-
-      // Récupérer les IDs des séances liées à ces semaines
-      const { data: sessions } = weekIds.length > 0
-        ? await supabase
-            .from('sessions')
-            .select('id')
-            .in('week_id', weekIds)
-        : { data: [] }
-
-      const sessionIds = sessions?.map(s => s.id) ?? []
-
-      // Compter le total d'exercices dans le programme
-      const { count: totalExercises } = sessionIds.length > 0
-        ? await supabase
-            .from('session_exercises')
-            .select('id', { count: 'exact', head: true })
-            .in('session_id', sessionIds)
-        : { count: 0 }
-
-      // Compter les exercices complétés par le client
-      const { count: completedExercises } = await supabase
+  // ── 2. Feedbacks récents (7 jours) — uniquement les clients de ce coach ──
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const { count: recentFeedbackCount } = myClientIds.length > 0
+    ? await supabase
         .from('exercise_logs')
-        .select('id', { count: 'exact', head: true })
-        .eq('client_id', program.client_id)
+        .select('*', { count: 'exact', head: true })
+        .not('feedback', 'is', null)
+        .gte('completed_at', sevenDaysAgo)
+        .in('client_id', myClientIds)
+    : { count: 0 }
+
+  // ── 3. Clients actifs cette semaine + inactifs ──
+  const mondayDate = getMondayOfThisWeek()
+  const { data: activeSessionLogs } = myClientIds.length > 0
+    ? await supabase
+        .from('session_logs')
+        .select('client_id')
         .eq('completed', true)
+        .gte('completed_at', mondayDate)
+        .in('client_id', myClientIds)
+    : { data: [] }
 
-      const percent = totalExercises
-        ? Math.round(((completedExercises ?? 0) / totalExercises) * 100)
-        : 0
+  const activeClientIds = new Set((activeSessionLogs ?? []).map(l => l.client_id))
+  const activeThisWeek = activeClientIds.size
 
-      clientStats.set(program.client_id, { status: program.status, percent })
+  // Dernière activité de chaque client (pour les inactifs)
+  const { data: allSessionLogs } = myClientIds.length > 0
+    ? await supabase
+        .from('session_logs')
+        .select('client_id, completed_at')
+        .eq('completed', true)
+        .in('client_id', myClientIds)
+        .order('completed_at', { ascending: false })
+    : { data: [] }
+
+  const lastActivityMap = new Map<string, string>()
+  if (allSessionLogs) {
+    for (const log of allSessionLogs) {
+      if (!lastActivityMap.has(log.client_id) && log.completed_at) {
+        lastActivityMap.set(log.client_id, log.completed_at)
+      }
     }
+  }
+
+  // Construire la liste des clients inactifs cette semaine
+  const inactiveClients = (allClients ?? [])
+    .filter(c => !activeClientIds.has(c.id))
+    .map(c => ({
+      id: c.id,
+      name: (c.first_name && c.last_name) ? `${c.first_name} ${c.last_name}` : c.full_name,
+      lastActivity: lastActivityMap.get(c.id) ?? null,
+    }))
+    .sort((a, b) => {
+      // Jamais connectés en dernier, sinon par date décroissante
+      if (!a.lastActivity && !b.lastActivity) return 0
+      if (!a.lastActivity) return 1
+      if (!b.lastActivity) return -1
+      return new Date(a.lastActivity).getTime() - new Date(b.lastActivity).getTime()
+    })
+
+  // ── 4. Les 5 derniers feedbacks ──
+  const { data: recentFeedbacks } = await supabase
+    .from('exercise_logs')
+    .select(`
+      id,
+      feedback,
+      completed_at,
+      client:profiles!client_id(id, full_name, first_name, last_name),
+      session_exercise:session_exercises!session_exercise_id(
+        exercise:exercises(name)
+      )
+    `)
+    .not('feedback', 'is', null)
+    .order('completed_at', { ascending: false })
+    .limit(5)
+
+  // ── 5. Dernier client actif (pour le raccourci) ──
+  const { data: lastActiveLog } = await supabase
+    .from('exercise_logs')
+    .select('client_id')
+    .eq('completed', true)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+
+  let lastActiveClient = null
+  if (lastActiveLog && lastActiveLog.length > 0) {
+    const { data: clientProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', lastActiveLog[0].client_id)
+      .single()
+    lastActiveClient = clientProfile
+  }
+
+  if (!lastActiveClient && allClients && allClients.length > 0) {
+    const { data: firstClient } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', allClients[0].id)
+      .single()
+    lastActiveClient = firstClient
   }
 
   return (
     <CoachDashboardClient
-      clients={clients ?? []}
-      clientStats={Object.fromEntries(clientStats)}
+      stats={{
+        clientCount,
+        activeThisWeek,
+        recentFeedbackCount: recentFeedbackCount ?? 0,
+      }}
+      recentFeedbacks={recentFeedbacks ?? []}
+      lastActiveClient={lastActiveClient}
+      inactiveClients={inactiveClients}
+      coachFirstName={coachFirstName}
     />
   )
 }

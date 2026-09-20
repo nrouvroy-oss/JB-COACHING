@@ -27,6 +27,11 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Les pages /auth sont toujours accessibles (invitation, reset mot de passe)
+  if (request.nextUrl.pathname.startsWith('/auth')) {
+    return response
+  }
+
   // Pas connecté → rediriger vers la page de connexion
   if (!user && (request.nextUrl.pathname.startsWith('/coach') || request.nextUrl.pathname.startsWith('/client'))) {
     return NextResponse.redirect(new URL('/login', request.url))
@@ -62,5 +67,5 @@ export async function middleware(request: NextRequest) {
 
 // Appliquer le middleware uniquement sur les routes protégées
 export const config = {
-  matcher: ['/coach/:path*', '/client/:path*', '/login'],
+  matcher: ['/coach/:path*', '/client/:path*', '/login', '/auth/:path*'],
 }

@@ -1,4 +1,4 @@
-// Composant bouton réutilisable avec variantes et tailles
+// Composant bouton réutilisable — thème sombre compact style Nike
 import { ButtonHTMLAttributes } from 'react'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -7,18 +7,15 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export function Button({ variant = 'primary', size = 'md', className = '', ...props }: ButtonProps) {
-  const base = 'rounded-lg font-medium disabled:opacity-50 transition-colors'
+  const base = 'rounded-lg font-semibold disabled:opacity-40 transition-all duration-150 cursor-pointer'
   const variants = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700',
-    secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200',
-    danger: 'bg-red-600 text-white hover:bg-red-700',
+    primary: 'bg-[#d4ff00] text-black hover:bg-[#c2ee00]',
+    secondary: 'bg-[#242424] text-white border border-[#333] hover:border-[#444] hover:bg-[#2a2a2a]',
+    danger: 'bg-transparent text-red-400 hover:text-red-300',
   }
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
+    sm: 'px-2.5 py-1 text-xs',
+    md: 'px-3 py-1.5 text-sm',
   }
-
-  return (
-    <button className={`${base} ${variants[variant]} ${sizes[size]} ${className}`} {...props} />
-  )
+  return <button className={`${base} ${variants[variant]} ${sizes[size]} ${className}`} {...props} />
 }
