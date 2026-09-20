@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JB COACHING
 
-## Getting Started
+Application web de coaching sportif permettant aux coachs de creer des programmes d'entrainement personnalises pour leurs clients.
 
-First, run the development server:
+## Fonctionnalites
+
+### Espace Coach
+- **Exercices** — Bibliotheque d'exercices avec videos, images ou PDF
+- **Programmes** — Blocs reutilisables d'exercices (Muscu 3, TRX, Velo...)
+- **Clients** — Gestion des fiches clients avec invitation par email
+- **Plannings** — Plans d'entrainement par semaines et seances, avec programmes assignes
+- **Dashboard** — Suivi des clients actifs/inactifs, feedbacks recents
+- **Guide** — Mode d'emploi integre
+
+### Espace Client
+- **Programme** — Visualisation des seances de la semaine avec progression
+- **Mode entrainement** — Plein ecran, video en boucle, chronometre integre
+- **Mon parcours** — Historique des programmes termines
+
+## Stack technique
+
+- **Frontend** — Next.js (App Router), TypeScript, Tailwind CSS
+- **Backend** — Supabase (PostgreSQL, Auth, Storage, RLS)
+- **Hebergement** — Vercel
+
+## Installation
 
 ```bash
+git clone https://github.com/nrouvroy-oss/JB-COACHING.git
+cd JB-COACHING
+npm install
+cp .env.local.example .env.local
+# Remplir les variables dans .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variables d'environnement
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copier `.env.local.example` en `.env.local` et remplir :
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL du projet Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Cle publique Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Cle service role (serveur uniquement) |
+| `NEXT_PUBLIC_APP_URL` | URL de l'app (pour les emails d'invitation) |
 
-## Learn More
+## Base de donnees
 
-To learn more about Next.js, take a look at the following resources:
+Les migrations SQL sont dans `supabase/migrations/`. Les appliquer dans l'ordre via l'editeur SQL de Supabase.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Licence
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Projet prive.
