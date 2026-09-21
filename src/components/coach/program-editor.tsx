@@ -81,12 +81,6 @@ export function ProgramEditor({ program, exercises, workouts = [] }: ProgramEdit
             </>
           )}
         </div>
-        {/* Affiche prénom + nom, repli sur full_name pour les anciens comptes */}
-        <p className="text-sm text-[#888]">
-          Programme de {(program.client.first_name && program.client.last_name)
-            ? `${program.client.first_name} ${program.client.last_name}`
-            : program.client.full_name}
-        </p>
       </div>
 
       <div className="space-y-4">
