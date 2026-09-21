@@ -26,6 +26,8 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [filterWorkout, setFilterWorkout] = useState<string>('all')
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const perPage = 20
   const router = useRouter()
 
   // Catégories uniques
@@ -44,6 +46,10 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
     return true
   })
 
+  // Pagination
+  const totalPages = Math.ceil(filtered.length / perPage)
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage)
+
   async function handleDelete(id: string) {
     if (!confirm('Supprimer cet exercice ?')) return
     await deleteExercise(id)
@@ -61,7 +67,7 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
       {/* Barre de recherche */}
       <input
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => { setSearch(e.target.value); setPage(1) }}
         placeholder="Rechercher un exercice..."
         className="w-full px-3 py-2 bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#777] mb-3"
       />
@@ -70,7 +76,7 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
       {workouts.length > 0 && (
         <div className="flex gap-2 overflow-x-auto pb-2 mb-2">
           <button
-            onClick={() => setFilterWorkout('all')}
+            onClick={() => { setFilterWorkout('all'); setPage(1) }}
             className={`px-3 py-1 rounded-full text-xs whitespace-nowrap font-medium transition-colors ${
               filterWorkout === 'all' ? 'bg-[#d4ff00] text-black' : 'bg-[#242424] text-[#888] hover:bg-[#2a2a2a]'
             }`}
@@ -80,7 +86,7 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
           {workouts.map((w) => (
             <button
               key={w.id}
-              onClick={() => setFilterWorkout(filterWorkout === w.id ? 'all' : w.id)}
+              onClick={() => { setFilterWorkout(filterWorkout === w.id ? 'all' : w.id); setPage(1) }}
               className={`px-3 py-1 rounded-full text-xs whitespace-nowrap font-medium transition-colors ${
                 filterWorkout === w.id ? 'bg-[#d4ff00] text-black' : 'bg-[#242424] text-[#888] hover:bg-[#2a2a2a]'
               }`}
@@ -95,7 +101,7 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
       {categories.length > 0 && (
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
           <button
-            onClick={() => setFilterCategory('all')}
+            onClick={() => { setFilterCategory('all'); setPage(1) }}
             className={`px-3 py-1 rounded-full text-xs whitespace-nowrap font-medium transition-colors ${
               filterCategory === 'all' ? 'bg-[#d4ff00]/20 text-[#d4ff00]' : 'bg-[#242424] text-[#555] hover:bg-[#2a2a2a]'
             }`}
@@ -105,7 +111,7 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
           {categories.map((cat) => (
             <button
               key={cat}
-              onClick={() => setFilterCategory(filterCategory === cat ? 'all' : cat)}
+              onClick={() => { setFilterCategory(filterCategory === cat ? 'all' : cat); setPage(1) }}
               className={`px-3 py-1 rounded-full text-xs whitespace-nowrap font-medium transition-colors ${
                 filterCategory === cat ? 'bg-[#d4ff00]/20 text-[#d4ff00]' : 'bg-[#242424] text-[#555] hover:bg-[#2a2a2a]'
               }`}
@@ -125,16 +131,49 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
           {exercises.length === 0 ? 'Aucun exercice. Ajoutez votre premier exercice !' : 'Aucun résultat'}
         </p>
       ) : (
-        <div className="space-y-3">
-          {filtered.map((exercise) => (
-            <ExerciseCard
-              key={exercise.id}
-              exercise={exercise}
-              onEdit={(ex) => { setEditingExercise(ex); setShowForm(true) }}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
+        <>
+          <div className="space-y-3">
+            {paginated.map((exercise) => (
+              <ExerciseCard
+                key={exercise.id}
+                exercise={exercise}
+                onEdit={(ex) => { setEditingExercise(ex); setShowForm(true) }}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#242424] text-[#888] hover:bg-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                ←
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${
+                    page === p ? 'bg-[#d4ff00] text-black' : 'bg-[#242424] text-[#888] hover:bg-[#2a2a2a]'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#242424] text-[#888] hover:bg-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                →
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Formulaire d'ajout / édition */}
