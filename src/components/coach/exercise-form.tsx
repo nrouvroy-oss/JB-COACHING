@@ -29,6 +29,7 @@ export function ExerciseForm({ onClose, exercise, workouts = [] }: ExerciseFormP
   const [category, setCategory] = useState(exercise?.category ?? CATEGORIES[0])
   const [description, setDescription] = useState(exercise?.description ?? '')
   const [videoFile, setVideoFile] = useState<File | null>(null)
+  const [removeMedia, setRemoveMedia] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -57,6 +58,11 @@ export function ExerciseForm({ onClose, exercise, workouts = [] }: ExerciseFormP
     if (!user) { setError('Non connecté'); setLoading(false); return }
 
     let videoUrl = exercise?.video_url ?? ''
+
+    // Supprimer le média si demandé
+    if (removeMedia) {
+      videoUrl = ''
+    }
 
     // Upload du média si un fichier est sélectionné
     if (videoFile) {
@@ -203,11 +209,35 @@ export function ExerciseForm({ onClose, exercise, workouts = [] }: ExerciseFormP
             Média (optionnel) {isEditing && '— laisser vide pour garder l\'actuel'}
           </label>
           <p className="text-xs text-[#555] mb-1.5">Vidéo, image ou PDF</p>
+          {isEditing && exercise?.video_url && !removeMedia && (
+            <div className="flex items-center justify-between bg-[#242424] rounded-lg px-3 py-2 mb-2">
+              <span className="text-xs text-[#888] truncate flex-1">Média actuel</span>
+              <button
+                type="button"
+                onClick={() => setRemoveMedia(true)}
+                className="text-xs text-red-400 hover:text-red-300 transition-colors shrink-0 ml-2"
+              >
+                Supprimer
+              </button>
+            </div>
+          )}
+          {removeMedia && (
+            <div className="flex items-center justify-between bg-red-500/10 rounded-lg px-3 py-2 mb-2">
+              <span className="text-xs text-red-400">Média supprimé à l'enregistrement</span>
+              <button
+                type="button"
+                onClick={() => setRemoveMedia(false)}
+                className="text-xs text-[#888] hover:text-white transition-colors shrink-0 ml-2"
+              >
+                Annuler
+              </button>
+            </div>
+          )}
           <input
             id="video"
             type="file"
             accept="video/mp4,video/quicktime,image/jpeg,image/png,application/pdf"
-            onChange={(e) => setVideoFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => { setVideoFile(e.target.files?.[0] ?? null); setRemoveMedia(false) }}
             className="w-full text-sm text-[#888] file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-[#d4ff00]/10 file:text-[#d4ff00] file:font-medium"
           />
         </div>
