@@ -163,30 +163,31 @@ export function SessionEditor({ session, sessionNumber, exercises, clientId, wor
           </div>
         </div>
       ) : (
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="min-w-0">
-            <span className="font-semibold text-white">
-              {session.name}
-            </span>
+        <div className="mb-2 space-y-2">
+          {/* Ligne 1 : nom + badge programme */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-white">{session.name}</span>
             {(session as any).workout_id && workouts.length > 0 && (
-              <span className="ml-2 inline-block bg-[#d4ff00]/10 text-[#d4ff00] text-xs px-2 py-0.5 rounded-full font-medium">
+              <span className="bg-[#d4ff00]/10 text-[#d4ff00] text-xs px-2 py-0.5 rounded-full font-medium">
                 {workouts.find(w => w.id === (session as any).workout_id)?.name ?? 'Programme'}
               </span>
             )}
             {session.day_of_week && (
-              <span className="ml-2 text-xs text-[#777] italic">({session.day_of_week})</span>
-            )}
-            {session.details && (
-              <p className="text-xs text-[#aaa] mt-0.5 whitespace-pre-line">{session.details}</p>
-            )}
-            {session.recovery && (
-              <p className="text-xs text-[#d4ff00]/70 mt-0.5">Récup : {session.recovery}</p>
+              <span className="text-xs text-[#777] italic">({session.day_of_week})</span>
             )}
           </div>
-          <div className="flex gap-2 flex-shrink-0">
-            <button onClick={() => setEditingSession(true)} className="text-[#d4ff00] hover:text-[#c2ee00] text-xs px-2 py-1 transition-colors">Modifier</button>
-            <Button size="sm" variant="secondary" onClick={() => setShowWorkoutPicker(true)}>+ Programme</Button>
-            <Button size="sm" variant="danger" onClick={handleDeleteSession}>Suppr.</Button>
+          {/* Ligne 2 : description + récupération */}
+          {session.details && (
+            <p className="text-xs text-[#aaa] whitespace-pre-line">{session.details}</p>
+          )}
+          {session.recovery && (
+            <p className="text-xs text-[#d4ff00]/70">Récup : {session.recovery}</p>
+          )}
+          {/* Ligne 3 : boutons d'action */}
+          <div className="flex gap-2">
+            <button onClick={() => setEditingSession(true)} className="text-[#d4ff00] hover:text-[#c2ee00] text-xs transition-colors">Modifier</button>
+            <button onClick={() => setShowWorkoutPicker(true)} className="text-[#888] hover:text-white text-xs transition-colors">+ Programme</button>
+            <button onClick={handleDeleteSession} className="text-red-400 hover:text-red-300 text-xs transition-colors">Suppr.</button>
           </div>
         </div>
       )}
@@ -212,28 +213,10 @@ export function SessionEditor({ session, sessionNumber, exercises, clientId, wor
                 if (!isExcluded) visibleIndex++
                 return (
                   <div key={we.id} className={`px-3 py-2 rounded-lg ${isExcluded ? 'bg-[#1c1c1c]/30 opacity-40' : 'bg-[#1c1c1c]/60'}`}>
+                    {/* Ligne 1 : numéro + nom + bouton ✕ */}
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-[#d4ff00] w-5 shrink-0">{isExcluded ? '—' : visibleIndex}</span>
                       <p className={`text-sm flex-1 min-w-0 truncate ${isExcluded ? 'text-[#555] line-through' : 'text-white'}`}>{ex?.name}</p>
-                      {!isExcluded && (
-                        <div className="flex items-center gap-1 shrink-0">
-                          <input
-                            defaultValue={detail?.sets ?? ''}
-                            placeholder="—"
-                            onBlur={(e) => updateExerciseDetails(session.id, we.id, e.target.value, detail?.reps ?? '', clientId)}
-                            className="w-8 px-1 py-0.5 bg-[#242424] border border-[#2a2a2a] rounded text-xs text-white text-center focus:outline-none focus:ring-1 focus:ring-[#d4ff00]"
-                            title="Séries"
-                          />
-                          <span className="text-xs text-[#555]">x</span>
-                          <input
-                            defaultValue={detail?.reps ?? ''}
-                            placeholder="—"
-                            onBlur={(e) => updateExerciseDetails(session.id, we.id, detail?.sets ?? '', e.target.value, clientId)}
-                            className="w-10 px-1 py-0.5 bg-[#242424] border border-[#2a2a2a] rounded text-xs text-white text-center focus:outline-none focus:ring-1 focus:ring-[#d4ff00]"
-                            title="Répétitions"
-                          />
-                        </div>
-                      )}
                       {isExcluded ? (
                         <button
                           onClick={async () => { await includeWorkoutExercise(session.id, we.id, clientId); router.refresh() }}
@@ -250,6 +233,26 @@ export function SessionEditor({ session, sessionNumber, exercises, clientId, wor
                         </button>
                       )}
                     </div>
+                    {/* Ligne 2 : séries x reps */}
+                    {!isExcluded && (
+                      <div className="flex items-center gap-1.5 ml-7 mt-1.5">
+                        <span className="text-xs text-[#888]">Séries</span>
+                        <input
+                          defaultValue={detail?.sets ?? ''}
+                          placeholder="—"
+                          onBlur={(e) => updateExerciseDetails(session.id, we.id, e.target.value, detail?.reps ?? '', clientId)}
+                          className="w-10 px-1.5 py-0.5 bg-[#242424] border border-[#2a2a2a] rounded text-xs text-white text-center focus:outline-none focus:ring-1 focus:ring-[#d4ff00]"
+                        />
+                        <span className="text-xs text-[#555]">x</span>
+                        <span className="text-xs text-[#888]">Reps</span>
+                        <input
+                          defaultValue={detail?.reps ?? ''}
+                          placeholder="—"
+                          onBlur={(e) => updateExerciseDetails(session.id, we.id, detail?.sets ?? '', e.target.value, clientId)}
+                          className="w-12 px-1.5 py-0.5 bg-[#242424] border border-[#2a2a2a] rounded text-xs text-white text-center focus:outline-none focus:ring-1 focus:ring-[#d4ff00]"
+                        />
+                      </div>
+                    )}
                     {we.coach_notes && !isExcluded && <p className="text-xs text-[#777] mt-0.5 ml-7">{we.coach_notes}</p>}
                   </div>
                 )

@@ -170,30 +170,31 @@ export function TemplateSessionEditor({ session, sessionNumber, exercises, progr
           </div>
         </div>
       ) : (
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="min-w-0">
-            <span className="font-semibold text-white">
-              {session.name}
-            </span>
+        <div className="mb-2 space-y-2">
+          {/* Ligne 1 : nom + badge programme */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-white">{session.name}</span>
             {(session as any).workout_id && workouts.length > 0 && (
-              <span className="ml-2 inline-block bg-[#d4ff00]/10 text-[#d4ff00] text-xs px-2 py-0.5 rounded-full font-medium">
+              <span className="bg-[#d4ff00]/10 text-[#d4ff00] text-xs px-2 py-0.5 rounded-full font-medium">
                 {workouts.find(w => w.id === (session as any).workout_id)?.name ?? 'Programme'}
               </span>
             )}
             {session.day_of_week && (
-              <span className="ml-2 text-xs text-[#777] italic">({session.day_of_week})</span>
-            )}
-            {session.details && (
-              <p className="text-xs text-[#aaa] mt-0.5 whitespace-pre-line">{session.details}</p>
-            )}
-            {session.recovery && (
-              <p className="text-xs text-[#d4ff00]/70 mt-0.5">Récup : {session.recovery}</p>
+              <span className="text-xs text-[#777] italic">({session.day_of_week})</span>
             )}
           </div>
-          <div className="flex gap-2 flex-shrink-0">
-            <button onClick={() => setEditingSession(true)} className="text-[#d4ff00] hover:text-[#c2ee00] text-xs px-2 py-1 transition-colors">Modifier</button>
-            <Button size="sm" variant="secondary" onClick={() => setShowWorkoutPicker(true)}>+ Programme</Button>
-            <Button size="sm" variant="danger" onClick={handleDeleteSession}>Suppr.</Button>
+          {/* Ligne 2 : description + récupération */}
+          {session.details && (
+            <p className="text-xs text-[#aaa] whitespace-pre-line">{session.details}</p>
+          )}
+          {session.recovery && (
+            <p className="text-xs text-[#d4ff00]/70">Récup : {session.recovery}</p>
+          )}
+          {/* Ligne 3 : boutons d'action */}
+          <div className="flex gap-2">
+            <button onClick={() => setEditingSession(true)} className="text-[#d4ff00] hover:text-[#c2ee00] text-xs transition-colors">Modifier</button>
+            <button onClick={() => setShowWorkoutPicker(true)} className="text-[#888] hover:text-white text-xs transition-colors">+ Programme</button>
+            <button onClick={handleDeleteSession} className="text-red-400 hover:text-red-300 text-xs transition-colors">Suppr.</button>
           </div>
         </div>
       )}
