@@ -11,7 +11,7 @@ export default withSentryConfig(nextConfig, {
 
   org: "nocoda",
 
-  project: "javascript-nextjs",
+  project: "jbcoaching",
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
