@@ -29,15 +29,23 @@ interface WorkoutOption {
   workout_exercises: WorkoutExerciseItem[]
 }
 
+interface ArchivedProgram {
+  id: string
+  name: string
+  created_at: string
+  weeks: { id: string; week_number: number; sessions: { id: string }[] }[]
+}
+
 interface ProgramPageClientProps {
   client: Profile
   program: ProgramWithWeeks | null
   exercises: Exercise[]
   workouts?: WorkoutOption[]
   otherClientPrograms?: ExistingClientProgram[]
+  archivedPrograms?: ArchivedProgram[]
 }
 
-export function ProgramPageClient({ client, program, exercises, workouts = [], otherClientPrograms = [] }: ProgramPageClientProps) {
+export function ProgramPageClient({ client, program, exercises, workouts = [], otherClientPrograms = [], archivedPrograms = [] }: ProgramPageClientProps) {
   const [showCreate, setShowCreate] = useState(false)
   const [showCopy, setShowCopy] = useState(false)
   const [programName, setProgramName] = useState('')
@@ -176,6 +184,31 @@ export function ProgramPageClient({ client, program, exercises, workouts = [], o
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Plans archivés */}
+      {archivedPrograms.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-sm font-semibold text-[#888] uppercase tracking-wide mb-3">Plans archivés</h2>
+          <div className="space-y-2">
+            {archivedPrograms.map((p) => {
+              const totalSessions = p.weeks.reduce((acc, w) => acc + w.sessions.length, 0)
+              return (
+                <div key={p.id} className="bg-[#1c1c1c] rounded-xl border border-[#2a2a2a] p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-white">{p.name}</p>
+                      <p className="text-xs text-[#888]">
+                        {p.weeks.length} semaine{p.weeks.length > 1 ? 's' : ''} · {totalSessions} séance{totalSessions > 1 ? 's' : ''} · {new Date(p.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                      </p>
+                    </div>
+                    <span className="text-xs text-[#555]">Terminé</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

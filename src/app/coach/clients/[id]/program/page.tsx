@@ -51,6 +51,14 @@ export default async function ClientProgramPage({ params }: { params: Promise<{ 
     .select('id, name, workout_exercises(id, order_index, coach_notes, exercise:exercises(id, name, category, video_url))')
     .order('name')
 
+  // Récupérer les plans archivés de ce client
+  const { data: archivedPrograms } = await supabase
+    .from('programs')
+    .select('id, name, status, created_at, weeks(id, week_number, sessions(id))')
+    .eq('client_id', clientId)
+    .eq('status', 'completed')
+    .order('created_at', { ascending: false })
+
   // Récupérer les plans d'autres clients (pour copier un plan existant)
   const { data: allPrograms } = await supabase
     .from('programs')
@@ -76,6 +84,7 @@ export default async function ClientProgramPage({ params }: { params: Promise<{ 
       exercises={exercises ?? []}
       workouts={(workouts ?? []) as any}
       otherClientPrograms={otherClientPrograms}
+      archivedPrograms={archivedPrograms ?? []}
     />
   )
 }
