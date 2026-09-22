@@ -5,7 +5,7 @@ export default function GuidePage() {
       number: '1',
       title: 'Créer tes exercices',
       description: 'Va dans l\'onglet Exercices et clique "+ Ajouter". Donne un nom, une catégorie, et ajoute une vidéo ou une image pour montrer le mouvement. Tu peux aussi assigner l\'exercice à un ou plusieurs programmes directement.',
-      tip: 'Tu peux ajouter des exercices sans vidéo et les compléter plus tard.',
+      tip: 'Tu peux filtrer par programme ou par catégorie pour retrouver tes exercices facilement.',
     },
     {
       number: '2',
@@ -22,7 +22,7 @@ export default function GuidePage() {
     {
       number: '4',
       title: 'Créer le plan d\'entraînement',
-      description: 'Clique sur un client → Plan → "Créer un plan". Ajoute des semaines, puis des séances dans chaque semaine. Pour chaque séance, clique "+ Programme" pour assigner un programme (Muscu 3, TRX...).',
+      description: 'Clique sur un client → "Créer un plan". Ajoute des semaines, puis des séances dans chaque semaine. Pour chaque séance, clique "+ Programme" pour assigner un programme (Muscu 3, TRX...) ou "+ Exercice" pour ajouter des exercices individuels.',
       tip: 'Tu peux personnaliser les exercices par séance : ajouter/retirer un exercice, indiquer les séries et répétitions. Le programme template ne change pas.',
     },
     {
@@ -33,6 +33,12 @@ export default function GuidePage() {
     },
     {
       number: '6',
+      title: 'Nouveau plan',
+      description: 'Quand un cycle est terminé, clique "+ Nouveau plan" en bas de la fiche client. L\'ancien plan est archivé automatiquement et visible dans la section "Plans archivés".',
+      tip: 'Tu peux aussi copier le plan d\'un autre client pour gagner du temps.',
+    },
+    {
+      number: '7',
       title: 'Le client s\'entraîne',
       description: 'Le client se connecte, voit ses séances de la semaine, et clique "Go" pour lancer le mode entraînement. Les vidéos tournent en boucle, un chrono est intégré, et il peut naviguer entre les exercices.',
       tip: 'Le client peut marquer ses séances comme terminées. Tu verras sa progression sur le tableau de bord.',
@@ -45,20 +51,24 @@ export default function GuidePage() {
       description: 'Le client clique sur le lien dans l\'email d\'invitation, choisit son mot de passe, et accède directement à son espace.',
     },
     {
-      title: 'Voir son plan',
-      description: 'L\'onglet "Mon plan" affiche les séances de la semaine en cours. Chaque carte montre le nom de la séance et le programme associé.',
+      title: 'Mon plan',
+      description: 'L\'onglet "Mon plan" affiche les séances de la semaine en cours avec la progression. Chaque carte montre le nom de la séance et le programme associé.',
     },
     {
       title: 'Lancer l\'entraînement',
-      description: 'Le bouton "Go" lance le mode plein écran : vidéo de chaque exercice en boucle, chronomètre intégré, navigation Précédent/Suivant.',
+      description: 'Le bouton "Go" lance le mode plein écran : vidéo de chaque exercice en boucle, chronomètre intégré (chrono libre + minuteur 30s/1min/2min/3min), navigation Précédent/Suivant.',
     },
     {
       title: 'Marquer comme fait',
-      description: 'En fin de séance, le client clique "Terminer" ou "Marquer comme terminée". La progression de la semaine se met à jour.',
+      description: 'En fin de séance, le client clique "Terminer" ou "Marquer comme terminée". La progression de la semaine se met à jour automatiquement.',
+    },
+    {
+      title: 'Mot de passe oublié',
+      description: 'Sur la page de connexion, le client clique "Mot de passe oublié ?" et reçoit un email pour en créer un nouveau.',
     },
     {
       title: 'Mon parcours',
-      description: 'L\'onglet "Mon parcours" montre le programme en cours et l\'historique des programmes terminés avec les stats.',
+      description: 'L\'onglet "Mon parcours" montre le plan en cours et l\'historique des plans terminés avec les stats de progression.',
     },
   ]
 
@@ -66,7 +76,7 @@ export default function GuidePage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Guide d&apos;utilisation</h1>
-        <p className="text-sm text-[#888] mt-1">Comment utiliser JB Coaching en 6 étapes</p>
+        <p className="text-sm text-[#888] mt-1">Comment utiliser JB Coaching en 7 étapes</p>
       </div>
 
       {/* Guide coach */}
