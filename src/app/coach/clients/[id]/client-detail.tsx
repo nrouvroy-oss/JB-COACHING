@@ -92,7 +92,7 @@ export function ClientDetail({ client }: ClientDetailProps) {
           href={`/coach/clients/${client.id}/program`}
           className="text-sm text-[#888] hover:text-[#d4ff00] transition-colors"
         >
-          ← Programme
+          ← Plan
         </Link>
         <span className="text-[#333]">|</span>
         <h1 className="text-xl font-bold text-white">Fiche client</h1>

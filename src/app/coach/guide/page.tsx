@@ -22,7 +22,7 @@ export default function GuidePage() {
     {
       number: '4',
       title: 'Créer le plan d\'entraînement',
-      description: 'Clique sur un client → Programme → "Créer un programme". Ajoute des semaines, puis des séances dans chaque semaine. Pour chaque séance, clique "+ Programme" pour assigner un programme (Muscu 3, TRX...).',
+      description: 'Clique sur un client → Plan → "Créer un plan". Ajoute des semaines, puis des séances dans chaque semaine. Pour chaque séance, clique "+ Programme" pour assigner un programme (Muscu 3, TRX...).',
       tip: 'Tu peux personnaliser les exercices par séance : ajouter/retirer un exercice, indiquer les séries et répétitions. Le programme template ne change pas.',
     },
     {
@@ -45,8 +45,8 @@ export default function GuidePage() {
       description: 'Le client clique sur le lien dans l\'email d\'invitation, choisit son mot de passe, et accède directement à son espace.',
     },
     {
-      title: 'Voir son programme',
-      description: 'L\'onglet "Programme" affiche les séances de la semaine en cours. Chaque carte montre le nom de la séance et le programme associé.',
+      title: 'Voir son plan',
+      description: 'L\'onglet "Mon plan" affiche les séances de la semaine en cours. Chaque carte montre le nom de la séance et le programme associé.',
     },
     {
       title: 'Lancer l\'entraînement',

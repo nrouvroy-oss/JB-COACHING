@@ -57,7 +57,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
       {/* Navigation entre les vues coach */}
       <div className="flex items-center justify-between mb-4">
         <Link href={`/coach/clients/${clientId}/program`} className="text-sm text-orange-500 hover:text-orange-600 transition-colors">
-          ← Programme
+          ← Plan
         </Link>
         <Link href="/coach" className="text-sm text-orange-500 hover:text-orange-600 transition-colors">
           Tableau de bord →

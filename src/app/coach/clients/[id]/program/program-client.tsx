@@ -86,15 +86,44 @@ export function ProgramPageClient({ client, program, exercises, workouts = [], o
 
       {/* Affiche l'éditeur ou le formulaire de création */}
       {program ? (
-        <ProgramEditor program={program} exercises={exercises} workouts={workouts} />
+        <>
+          <ProgramEditor program={program} exercises={exercises} workouts={workouts} />
+          {/* Bouton pour créer un nouveau plan (archive l'ancien) */}
+          <div className="mt-6 pt-4 border-t border-[#2a2a2a]">
+            {showCreate ? (
+              <div className="max-w-sm mx-auto space-y-3">
+                <Input
+                  label="Nom du nouveau plan"
+                  id="new-plan-name"
+                  value={programName}
+                  onChange={(e) => setProgramName(e.target.value)}
+                  placeholder="Ex: Force — Cycle 2"
+                />
+                <div className="flex gap-2">
+                  <Button onClick={handleCreate} disabled={loading} className="flex-1">
+                    {loading ? 'Création...' : 'Créer et archiver l\'ancien'}
+                  </Button>
+                  <Button variant="secondary" onClick={() => { setShowCreate(false); setProgramName('') }}>Annuler</Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowCreate(true)}
+                className="text-xs text-[#888] hover:text-[#d4ff00] transition-colors"
+              >
+                + Nouveau plan (archive le plan actuel)
+              </button>
+            )}
+          </div>
+        </>
       ) : (
         <div className="text-center py-12">
-          <p className="text-[#888] mb-4">Aucun programme actif pour ce client.</p>
+          <p className="text-[#888] mb-4">Aucun plan actif pour ce client.</p>
 
           {showCreate ? (
             <div className="max-w-sm mx-auto space-y-3">
               <Input
-                label="Nom du programme"
+                label="Nom du plan"
                 id="program-name"
                 value={programName}
                 onChange={(e) => setProgramName(e.target.value)}
@@ -139,7 +168,7 @@ export function ProgramPageClient({ client, program, exercises, workouts = [], o
             </div>
           ) : (
             <div className="flex flex-col gap-3 max-w-xs mx-auto">
-              <Button onClick={() => setShowCreate(true)}>Créer un programme</Button>
+              <Button onClick={() => setShowCreate(true)}>Créer un plan</Button>
               {otherClientPrograms.length > 0 && (
                 <Button variant="secondary" onClick={() => setShowCopy(true)}>
                   Copier depuis un autre client

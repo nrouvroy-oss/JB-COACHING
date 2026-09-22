@@ -60,7 +60,7 @@ export function ParcoursView({ activeProgram, completedPrograms, userId }: Parco
       {/* Programme en cours */}
       {activeProgram && activeStats && (
         <div className="mb-8">
-          <p className="text-xs font-medium text-[#888] uppercase tracking-wide mb-3">Programme en cours</p>
+          <p className="text-xs font-medium text-[#888] uppercase tracking-wide mb-3">Plan en cours</p>
           <div className="bg-[#1c1c1c] rounded-xl border border-[#d4ff00]/20 p-4">
             <div className="flex items-center justify-between mb-2">
               <h2 className="font-bold text-white">{activeProgram.name}</h2>
@@ -83,12 +83,12 @@ export function ParcoursView({ activeProgram, completedPrograms, userId }: Parco
 
       {/* Programmes terminés */}
       <div>
-        <p className="text-xs font-medium text-[#888] uppercase tracking-wide mb-3">Programmes terminés</p>
+        <p className="text-xs font-medium text-[#888] uppercase tracking-wide mb-3">Plans terminés</p>
 
         {completedPrograms.length === 0 ? (
           <div className="bg-[#1c1c1c] rounded-xl border border-[#2a2a2a] p-6 text-center">
-            <p className="text-[#777] text-sm">Pas encore de programme terminé.</p>
-            <p className="text-[#555] text-xs mt-1">Tes programmes complétés apparaîtront ici.</p>
+            <p className="text-[#777] text-sm">Pas encore de plan terminé.</p>
+            <p className="text-[#555] text-xs mt-1">Tes plans complétés apparaîtront ici.</p>
           </div>
         ) : (
           <div className="space-y-3">

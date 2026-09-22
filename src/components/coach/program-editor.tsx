@@ -70,7 +70,7 @@ export function ProgramEditor({ program, exercises, workouts = [] }: ProgramEdit
               <button onClick={() => setEditing(true)} className="text-xs text-[#888] hover:text-[#d4ff00] transition-colors">Renommer</button>
               <button
                 onClick={async () => {
-                  if (!confirm(`Supprimer le programme "${program.name}" et toutes ses données ?`)) return
+                  if (!confirm(`Supprimer le plan "${program.name}" et toutes ses données ?`)) return
                   await deleteProgram(program.id, program.client_id)
                   router.refresh()
                 }}

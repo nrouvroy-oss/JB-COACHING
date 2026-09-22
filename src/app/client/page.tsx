@@ -53,11 +53,11 @@ export default async function ClientProgramPage() {
           />
           <div className="absolute inset-0 bg-black/60" />
           <div className="relative h-full flex items-center justify-center px-4">
-            <p className="text-white font-semibold text-center">Ton coach te prépare un programme</p>
+            <p className="text-white font-semibold text-center">Ton coach te prépare un plan</p>
           </div>
         </div>
-        <p className="text-[#888]">Aucun programme pour le moment.</p>
-        <p className="text-sm text-[#777] mt-2">Ton coach te préparera bientôt un programme !</p>
+        <p className="text-[#888]">Aucun plan pour le moment.</p>
+        <p className="text-sm text-[#777] mt-2">Ton coach te préparera bientôt un plan !</p>
       </div>
     )
   }
