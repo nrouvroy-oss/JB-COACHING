@@ -184,9 +184,10 @@ export function SessionEditor({ session, sessionNumber, exercises, clientId, wor
             <p className="text-xs text-[#d4ff00]/70">Récup : {session.recovery}</p>
           )}
           {/* Ligne 3 : boutons d'action */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button onClick={() => setEditingSession(true)} className="text-[#d4ff00] hover:text-[#c2ee00] text-xs transition-colors">Modifier</button>
             <button onClick={() => setShowWorkoutPicker(true)} className="text-[#888] hover:text-white text-xs transition-colors">+ Programme</button>
+            <button onClick={() => setShowPicker(true)} className="text-[#888] hover:text-white text-xs transition-colors">+ Exercice</button>
             <button onClick={handleDeleteSession} className="text-red-400 hover:text-red-300 text-xs transition-colors">Suppr.</button>
           </div>
         </div>
