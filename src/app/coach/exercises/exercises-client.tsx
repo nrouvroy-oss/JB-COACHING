@@ -89,21 +89,23 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
         ))}
       </div>
 
-      {/* Recherche + filtres sur une ligne */}
+      {/* Recherche */}
+      <input
+        value={search}
+        onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+        placeholder="Rechercher..."
+        aria-label="Rechercher un exercice"
+        className="w-full px-3 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#777] mb-2"
+      />
+
+      {/* Filtres catégorie + programme */}
       <div className="flex gap-2 mb-3">
-        <input
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-          placeholder="Rechercher..."
-          aria-label="Rechercher un exercice"
-          className="flex-1 px-3 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#777]"
-        />
         <select
           value={filterCategory}
           onChange={(e) => { setFilterCategory(e.target.value); setPage(1) }}
-          className="px-2 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg text-xs text-[#888] focus:outline-none focus:ring-1 focus:ring-[#d4ff00]"
+          className="flex-1 px-3 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg text-sm text-[#888] focus:outline-none focus:ring-1 focus:ring-[#d4ff00]"
         >
-          <option value="all">Catégorie</option>
+          <option value="all">Toutes les catégories</option>
           {categories.map((cat) => (
             <option key={cat} value={cat}>{cat}</option>
           ))}
@@ -112,9 +114,9 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
           <select
             value={filterWorkout}
             onChange={(e) => { setFilterWorkout(e.target.value); setPage(1) }}
-            className="px-2 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg text-xs text-[#888] focus:outline-none focus:ring-1 focus:ring-[#d4ff00]"
+            className="flex-1 px-3 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg text-sm text-[#888] focus:outline-none focus:ring-1 focus:ring-[#d4ff00]"
           >
-            <option value="all">Programme</option>
+            <option value="all">Tous les programmes</option>
             {workouts.map((w) => (
               <option key={w.id} value={w.id}>{w.name}</option>
             ))}
