@@ -76,17 +76,17 @@ export function CoachDashboardClient({
           <StatCard
             label="Clients"
             value={stats.clientCount}
-            icon="👥"
+            icon="clients"
           />
           <StatCard
-            label="Actifs cette semaine"
+            label="Actifs semaine"
             value={`${stats.activeThisWeek}/${stats.clientCount}`}
-            icon="🔥"
+            icon="active"
           />
           <StatCard
             label="Feedbacks"
             value={stats.recentFeedbackCount}
-            icon="💬"
+            icon="feedback"
           />
         </div>
       </section>
