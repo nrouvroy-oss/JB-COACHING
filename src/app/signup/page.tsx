@@ -1,8 +1,8 @@
-// Page de connexion — design harmonisé avec la landing KTRY
+// Page d'inscription coach — design harmonisé avec la landing KTRY
+import { SignupForm } from './signup-form'
 import Link from 'next/link'
-import { LoginForm } from '@/components/auth/login-form'
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-5 bg-[#0a0a0a] relative overflow-hidden">
       {/* Gradient orbs */}
@@ -30,19 +30,19 @@ export default function LoginPage() {
             className="text-2xl font-extrabold text-white tracking-tight"
             style={{ fontFamily: 'Bricolage Grotesque' }}
           >
-            Content de vous revoir
+            Créer mon compte coach
           </h1>
-          <p className="text-[#555] mt-2 text-sm">Connectez-vous à votre espace</p>
+          <p className="text-[#555] mt-2 text-sm">Gratuit jusqu&apos;à 3 clients. Sans engagement.</p>
         </div>
 
         <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6 backdrop-blur-sm">
-          <LoginForm />
+          <SignupForm />
         </div>
 
         <p className="text-center mt-6 text-sm text-[#555]">
-          Pas encore de compte ?{' '}
-          <Link href="/signup" className="text-[#d4ff00] hover:text-[#e8ff66] transition-colors duration-300 font-semibold">
-            Créer un compte coach
+          Déjà un compte ?{' '}
+          <Link href="/login" className="text-[#d4ff00] hover:text-[#e8ff66] transition-colors duration-300 font-semibold">
+            Se connecter
           </Link>
         </p>
       </div>

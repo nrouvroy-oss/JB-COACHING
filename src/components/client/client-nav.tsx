@@ -27,7 +27,7 @@ export function ClientNav() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={`flex-1 text-center py-2.5 text-sm font-medium transition-colors ${
+            className={`flex-1 text-center py-3 min-h-[44px] flex items-center justify-center text-sm font-medium transition-colors ${
               isActive(tab.href)
                 ? 'text-[#d4ff00] border-b-2 border-[#d4ff00]'
                 : 'text-[#888] hover:text-white'

@@ -7,14 +7,42 @@ import { ClientCard } from '@/components/coach/client-card'
 import { AddClientModal } from '@/components/coach/add-client-modal'
 import type { Profile } from '@/lib/types'
 
+function UpgradeButton() {
+  const [loading, setLoading] = useState(false)
+
+  async function handleUpgrade() {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      const { url } = await res.json()
+      if (url) window.location.href = url
+      else setLoading(false)
+    } catch {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={handleUpgrade}
+      disabled={loading}
+      className="mt-2 px-4 py-1.5 bg-[#d4ff00] text-black text-xs font-bold rounded-lg hover:bg-[#c2ee00] disabled:opacity-60 transition-colors"
+    >
+      {loading ? 'Redirection...' : 'Passer en Pro'}
+    </button>
+  )
+}
+
 interface ClientsPageClientProps {
   clients: Profile[]
   clientStats: Record<string, { status: string; percent: number }>
   lastActivityMap: Record<string, string>
+  maxClients?: number | null  // Limite du plan (3 pour gratuit, null pour pro)
 }
 
-export function ClientsPageClient({ clients, clientStats, lastActivityMap }: ClientsPageClientProps) {
+export function ClientsPageClient({ clients, clientStats, lastActivityMap, maxClients = 3 }: ClientsPageClientProps) {
   const [showAddModal, setShowAddModal] = useState(false)
+  const isAtLimit = maxClients !== null && clients.length >= maxClients
 
   return (
     <div>
@@ -28,13 +56,24 @@ export function ClientsPageClient({ clients, clientStats, lastActivityMap }: Cli
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
         <div className="relative h-full flex flex-col justify-end p-4">
           <h1 className="text-xl font-bold text-white">Mes clients</h1>
-          <p className="text-sm text-[#888]">{clients.length} client{clients.length !== 1 ? 's' : ''}</p>
+          <p className="text-sm text-[#888]">
+            {clients.length}{maxClients !== null ? `/${maxClients}` : ''} client{clients.length !== 1 ? 's' : ''}
+          </p>
         </div>
       </div>
 
+      {/* Alerte limite atteinte avec bouton upgrade */}
+      {isAtLimit && (
+        <div className="bg-[#d4ff00]/10 border border-[#d4ff00]/20 rounded-xl p-3 mb-4">
+          <p className="text-sm text-[#d4ff00] font-medium">Limite du plan gratuit atteinte ({maxClients} clients)</p>
+          <p className="text-xs text-[#888] mt-0.5">Passez en Pro pour ajouter des clients illimités — 24€/mois</p>
+          <UpgradeButton />
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Mes clients</h2>
-        <Button onClick={() => setShowAddModal(true)} size="sm">
+        <Button onClick={() => setShowAddModal(true)} size="sm" disabled={isAtLimit}>
           + Ajouter
         </Button>
       </div>

@@ -10,7 +10,7 @@ import { createBrowserClient } from '@/lib/supabase/client'
 import type { Exercise } from '@/lib/types'
 
 // Catégories disponibles pour les exercices
-const CATEGORIES = ['Haut du corps', 'Bas du corps', 'Cardio', 'Abdominaux', 'Étirements', 'Full body']
+const CATEGORIES = ['Renforcement', 'Haut du corps', 'Bas du corps', 'Core', 'Full body', 'Cardio', 'Mobilité', 'TRX', 'Swissball', 'Running', 'Vélo', 'Élastiques', 'Poids du corps', 'Autre']
 
 interface WorkoutOption {
   id: string
@@ -28,6 +28,9 @@ export function ExerciseForm({ onClose, exercise, workouts = [] }: ExerciseFormP
   const [name, setName] = useState(exercise?.name ?? '')
   const [category, setCategory] = useState(exercise?.category ?? CATEGORIES[0])
   const [description, setDescription] = useState(exercise?.description ?? '')
+  const [equipment, setEquipment] = useState(exercise?.equipment ?? '')
+  const [muscleGroup, setMuscleGroup] = useState(exercise?.muscle_group ?? '')
+  const [instructions, setInstructions] = useState(exercise?.instructions ?? '')
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [removeMedia, setRemoveMedia] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -91,14 +94,14 @@ export function ExerciseForm({ onClose, exercise, workouts = [] }: ExerciseFormP
     if (isEditing) {
       const { error: updateError } = await supabase
         .from('exercises')
-        .update({ name, category, description, video_url: videoUrl })
+        .update({ name, category, description, video_url: videoUrl, equipment, muscle_group: muscleGroup, instructions })
         .eq('id', exercise.id)
 
       if (updateError) { setError('Erreur lors de la mise à jour'); setLoading(false); return }
     } else {
       const { data: newExercise, error: insertError } = await supabase
         .from('exercises')
-        .insert({ name, category, description, video_url: videoUrl, coach_id: user.id })
+        .insert({ name, category, description, video_url: videoUrl, coach_id: user.id, equipment, muscle_group: muscleGroup, instructions })
         .select('id')
         .single()
 
@@ -193,15 +196,30 @@ export function ExerciseForm({ onClose, exercise, workouts = [] }: ExerciseFormP
           </div>
         )}
 
+        <div className="grid grid-cols-2 gap-3">
+          <Input label="Matériel" id="equipment" value={equipment} onChange={(e) => setEquipment(e.target.value)} placeholder="Barre, Haltères, TRX..." />
+          <Input label="Groupe musculaire" id="muscle_group" value={muscleGroup} onChange={(e) => setMuscleGroup(e.target.value)} placeholder="Pectoraux, Dos..." />
+        </div>
         <div>
           <label htmlFor="description" className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">Description</label>
           <textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows={3}
+            rows={2}
             className="w-full px-3 py-2 bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] focus:border-[#d4ff00] text-white placeholder:text-[#777] text-sm transition-colors"
-            placeholder="Consignes, points d'attention..."
+            placeholder="Description de l'exercice..."
+          />
+        </div>
+        <div>
+          <label htmlFor="instructions" className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">Consignes</label>
+          <textarea
+            id="instructions"
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            rows={2}
+            className="w-full px-3 py-2 bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] focus:border-[#d4ff00] text-white placeholder:text-[#777] text-sm transition-colors"
+            placeholder="Points d'attention, respiration, tempo..."
           />
         </div>
         <div>

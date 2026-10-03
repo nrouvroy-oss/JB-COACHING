@@ -83,11 +83,21 @@ export default async function ClientsPage() {
     return new Date(dateB).getTime() - new Date(dateA).getTime()
   })
 
+  // Vérifier le statut d'abonnement pour la limite freemium
+  const { data: subscription } = await supabase
+    .from('subscriptions')
+    .select('status')
+    .eq('coach_id', user!.id)
+    .single()
+
+  const isPro = subscription?.status === 'active'
+
   return (
     <ClientsPageClient
       clients={sortedClients}
       clientStats={Object.fromEntries(clientStats)}
       lastActivityMap={Object.fromEntries(lastActivityMap)}
+      maxClients={isPro ? null : 3}
     />
   )
 }

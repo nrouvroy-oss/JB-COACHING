@@ -37,6 +37,27 @@ export async function createClient(formData: FormData) {
 
   if (profile?.role !== 'coach') return { error: 'Non autorisé' }
 
+  // Vérifier la limite freemium : 3 clients max sauf si abonnement Pro actif
+  const { data: subscription } = await supabase
+    .from('subscriptions')
+    .select('status')
+    .eq('coach_id', user.id)
+    .single()
+
+  const isPro = subscription?.status === 'active'
+
+  if (!isPro) {
+    const { count } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('coach_id', user.id)
+      .eq('role', 'client')
+
+    if ((count ?? 0) >= 3) {
+      return { error: 'Limite atteinte : 3 clients maximum avec le plan gratuit. Passez en Pro pour ajouter plus de clients.' }
+    }
+  }
+
   // Inviter le client par email — il recevra un lien pour choisir son mot de passe
   const admin = createAdminClient()
   const { data: newUser, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {

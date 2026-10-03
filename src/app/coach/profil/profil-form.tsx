@@ -64,7 +64,7 @@ export function CoachProfileForm({ profile }: CoachProfileFormProps) {
                 id="first_name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="JB"
+                placeholder="Jean"
                 required
               />
               <Input

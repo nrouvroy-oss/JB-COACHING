@@ -27,8 +27,8 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Les pages /auth sont toujours accessibles (invitation, reset mot de passe)
-  if (request.nextUrl.pathname.startsWith('/auth')) {
+  // Les pages /auth et /signup sont toujours accessibles
+  if (request.nextUrl.pathname.startsWith('/auth') || request.nextUrl.pathname === '/signup') {
     return response
   }
 
@@ -45,8 +45,8 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    // Déjà connecté sur /login → rediriger vers le bon espace
-    if (request.nextUrl.pathname === '/login') {
+    // Déjà connecté sur /login ou /signup → rediriger vers le bon espace
+    if (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup') {
       const target = profile?.role === 'coach' ? '/coach' : '/client'
       return NextResponse.redirect(new URL(target, request.url))
     }
@@ -65,7 +65,7 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
-// Appliquer le middleware uniquement sur les routes protégées
+// Appliquer le middleware sur les routes protégées (signup et / sont libres d'accès)
 export const config = {
-  matcher: ['/coach/:path*', '/client/:path*', '/login', '/auth/:path*'],
+  matcher: ['/coach/:path*', '/client/:path*', '/login', '/signup', '/auth/:path*'],
 }

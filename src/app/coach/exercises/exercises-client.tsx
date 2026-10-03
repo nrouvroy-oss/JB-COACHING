@@ -1,12 +1,12 @@
 'use client'
 
-// Bibliothèque d'exercices — recherche, filtres par catégorie et par programme
+// Bibliothèque d'exercices — recherche, filtres par catégorie, programme et source
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ExerciseCard } from '@/components/coach/exercise-card'
 import { ExerciseForm } from '@/components/coach/exercise-form'
-import { deleteExercise } from './actions'
+import { deleteExercise, duplicateExercise } from './actions'
 import type { Exercise } from '@/lib/types'
 
 interface WorkoutInfo {
@@ -25,6 +25,7 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null)
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [filterWorkout, setFilterWorkout] = useState<string>('all')
+  const [filterSource, setFilterSource] = useState<'all' | 'standard' | 'mine'>('all')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const perPage = 20
@@ -38,11 +39,13 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
     ? new Set(workouts.find(w => w.id === filterWorkout)?.workout_exercises.map(we => we.exercise_id) ?? [])
     : null
 
-  // Filtrage combiné : recherche + catégorie + programme
+  // Filtrage combiné : recherche + catégorie + programme + source
   const filtered = exercises.filter((e) => {
     if (filterCategory !== 'all' && e.category !== filterCategory) return false
     if (workoutExerciseIds && !workoutExerciseIds.has(e.id)) return false
     if (search && !e.name.toLowerCase().includes(search.toLowerCase())) return false
+    if (filterSource === 'standard' && e.coach_id !== null) return false
+    if (filterSource === 'mine' && e.coach_id === null) return false
     return true
   })
 
@@ -56,6 +59,11 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
     router.refresh()
   }
 
+  async function handleDuplicate(exercise: Exercise) {
+    await duplicateExercise(exercise.id)
+    router.refresh()
+  }
+
   return (
     <div>
       {/* En-tête */}
@@ -64,63 +72,55 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
         <Button onClick={() => setShowForm(true)} size="sm">+ Ajouter</Button>
       </div>
 
-      {/* Barre de recherche */}
-      <input
-        value={search}
-        onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-        placeholder="Rechercher un exercice..."
-        className="w-full px-3 py-2 bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#777] mb-3"
-      />
-
-      {/* Filtre par programme */}
-      {workouts.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-2">
+      {/* Tabs source — segmented control */}
+      <div className="flex bg-[#1c1c1c] rounded-lg p-0.5 mb-3">
+        {(['all', 'standard', 'mine'] as const).map((source) => (
           <button
-            onClick={() => { setFilterWorkout('all'); setPage(1) }}
-            className={`px-3 py-1 rounded-full text-xs whitespace-nowrap font-medium transition-colors ${
-              filterWorkout === 'all' ? 'bg-[#d4ff00] text-black' : 'bg-[#242424] text-[#888] hover:bg-[#2a2a2a]'
+            key={source}
+            onClick={() => { setFilterSource(source); setPage(1) }}
+            className={`flex-1 py-3 min-h-[44px] text-sm font-semibold rounded-md transition-all ${
+              filterSource === source
+                ? 'bg-[#d4ff00] text-black'
+                : 'text-[#888] hover:text-white'
             }`}
           >
-            Tous les programmes
+            {source === 'all' ? `Tous (${exercises.length})` : source === 'standard' ? `Base (${exercises.filter(e => e.coach_id === null).length})` : `Perso (${exercises.filter(e => e.coach_id !== null).length})`}
           </button>
-          {workouts.map((w) => (
-            <button
-              key={w.id}
-              onClick={() => { setFilterWorkout(filterWorkout === w.id ? 'all' : w.id); setPage(1) }}
-              className={`px-3 py-1 rounded-full text-xs whitespace-nowrap font-medium transition-colors ${
-                filterWorkout === w.id ? 'bg-[#d4ff00] text-black' : 'bg-[#242424] text-[#888] hover:bg-[#2a2a2a]'
-              }`}
-            >
-              {w.name}
-            </button>
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
 
-      {/* Filtre par catégorie */}
-      {categories.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
-          <button
-            onClick={() => { setFilterCategory('all'); setPage(1) }}
-            className={`px-3 py-1 rounded-full text-xs whitespace-nowrap font-medium transition-colors ${
-              filterCategory === 'all' ? 'bg-[#d4ff00]/20 text-[#d4ff00]' : 'bg-[#242424] text-[#555] hover:bg-[#2a2a2a]'
-            }`}
-          >
-            Toutes
-          </button>
+      {/* Recherche + filtres sur une ligne */}
+      <div className="flex gap-2 mb-3">
+        <input
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+          placeholder="Rechercher..."
+          aria-label="Rechercher un exercice"
+          className="flex-1 px-3 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#777]"
+        />
+        <select
+          value={filterCategory}
+          onChange={(e) => { setFilterCategory(e.target.value); setPage(1) }}
+          className="px-2 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg text-xs text-[#888] focus:outline-none focus:ring-1 focus:ring-[#d4ff00]"
+        >
+          <option value="all">Catégorie</option>
           {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => { setFilterCategory(filterCategory === cat ? 'all' : cat); setPage(1) }}
-              className={`px-3 py-1 rounded-full text-xs whitespace-nowrap font-medium transition-colors ${
-                filterCategory === cat ? 'bg-[#d4ff00]/20 text-[#d4ff00]' : 'bg-[#242424] text-[#555] hover:bg-[#2a2a2a]'
-              }`}
-            >
-              {cat}
-            </button>
+            <option key={cat} value={cat}>{cat}</option>
           ))}
-        </div>
-      )}
+        </select>
+        {workouts.length > 0 && (
+          <select
+            value={filterWorkout}
+            onChange={(e) => { setFilterWorkout(e.target.value); setPage(1) }}
+            className="px-2 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg text-xs text-[#888] focus:outline-none focus:ring-1 focus:ring-[#d4ff00]"
+          >
+            <option value="all">Programme</option>
+            {workouts.map((w) => (
+              <option key={w.id} value={w.id}>{w.name}</option>
+            ))}
+          </select>
+        )}
+      </div>
 
       {/* Compteur de résultats */}
       <p className="text-xs text-[#888] mb-3">{filtered.length} exercice{filtered.length !== 1 ? 's' : ''}</p>
@@ -139,6 +139,7 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
                 exercise={exercise}
                 onEdit={(ex) => { setEditingExercise(ex); setShowForm(true) }}
                 onDelete={handleDelete}
+                onDuplicate={handleDuplicate}
               />
             ))}
           </div>
@@ -149,7 +150,8 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#242424] text-[#888] hover:bg-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="w-11 h-11 rounded-lg text-sm font-medium bg-[#242424] text-[#888] hover:bg-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                aria-label="Page précédente"
               >
                 ←
               </button>
@@ -157,7 +159,7 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
                 <button
                   key={p}
                   onClick={() => setPage(p)}
-                  className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${
+                  className={`w-11 h-11 rounded-lg text-sm font-medium transition-colors flex items-center justify-center ${
                     page === p ? 'bg-[#d4ff00] text-black' : 'bg-[#242424] text-[#888] hover:bg-[#2a2a2a]'
                   }`}
                 >
@@ -167,7 +169,8 @@ export function ExercisesPageClient({ exercises, workouts }: ExercisesPageClient
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#242424] text-[#888] hover:bg-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="w-11 h-11 rounded-lg text-sm font-medium bg-[#242424] text-[#888] hover:bg-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                aria-label="Page suivante"
               >
                 →
               </button>

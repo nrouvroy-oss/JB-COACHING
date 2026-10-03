@@ -76,7 +76,7 @@ export default function GuidePage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Guide d&apos;utilisation</h1>
-        <p className="text-sm text-[#888] mt-1">Comment utiliser JB Coaching en 7 étapes</p>
+        <p className="text-sm text-[#888] mt-1">Comment utiliser KTRY en 7 étapes</p>
       </div>
 
       {/* Guide coach */}

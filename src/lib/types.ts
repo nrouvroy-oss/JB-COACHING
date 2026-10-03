@@ -1,4 +1,4 @@
-// Types principaux de l'application Coach JB
+// Types principaux de l'application KTRY
 
 export type UserRole = 'coach' | 'client'
 export type ProgramStatus = 'active' | 'completed'
@@ -28,7 +28,11 @@ export interface Exercise {
   description: string
   video_url: string
   category: string
-  coach_id: string
+  coach_id: string | null  // NULL = bibliothèque de démarrage
+  equipment: string
+  muscle_group: string
+  instructions: string
+  difficulty: string
   created_at: string
 }
 

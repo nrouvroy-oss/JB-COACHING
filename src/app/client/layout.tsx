@@ -36,8 +36,8 @@ export default async function ClientLayout({
               <rect x="8.5" y="12" width="11" height="4" rx="1" fill="#d4ff00" opacity="0.5"/>
             </svg>
             <div>
-              <p className="text-white font-extrabold text-sm tracking-tight">JB COACHING</p>
-              <p className="text-[#777] text-xs">{profile?.first_name ?? profile?.full_name}</p>
+              <p className="text-white font-extrabold text-sm tracking-tight">KTRY</p>
+              <p className="text-[#777] text-xs truncate max-w-[120px]">{profile?.first_name ?? profile?.full_name}</p>
             </div>
           </Link>
           <LogoutButton />

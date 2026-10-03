@@ -14,7 +14,7 @@ export default function SetPasswordPage() {
             <rect x="19.5" y="7.5" width="3" height="13" rx="1" fill="#d4ff00" opacity="0.7"/>
             <rect x="8.5" y="12" width="11" height="4" rx="1" fill="#d4ff00" opacity="0.5"/>
           </svg>
-          <h1 className="text-white font-extrabold text-lg">JB COACHING</h1>
+          <h1 className="text-white font-extrabold text-lg">KTRY</h1>
           <p className="text-[#888] text-sm mt-1">Choisis ton mot de passe</p>
         </div>
 

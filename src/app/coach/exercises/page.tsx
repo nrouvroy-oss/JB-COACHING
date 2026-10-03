@@ -1,14 +1,17 @@
-// Page bibliothèque d'exercices — récupère exercices + programmes associés
+// Page bibliothèque d'exercices — récupère exercices standard + exercices du coach
 import { createServerClient } from '@/lib/supabase/server'
+import { requireCoach } from '@/lib/auth'
 import { ExercisesPageClient } from './exercises-client'
 
 export default async function ExercisesPage() {
+  const user = await requireCoach()
   const supabase = await createServerClient()
 
-  // Récupérer tous les exercices triés par catégorie puis par nom
+  // Récupérer les exercices standard (coach_id IS NULL) + les exercices du coach
   const { data: exercises } = await supabase
     .from('exercises')
     .select('*')
+    .or(`coach_id.is.null,coach_id.eq.${user!.id}`)
     .order('category')
     .order('name')
 

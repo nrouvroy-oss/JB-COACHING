@@ -100,7 +100,7 @@ export function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-3 py-2 bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] text-white placeholder:text-[#777] text-sm"
+            className="w-full px-3 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] text-white placeholder:text-[#777] text-sm"
             placeholder="votre@email.com"
           />
         </div>
@@ -108,7 +108,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-1.5 px-3 bg-[#d4ff00] text-black rounded-lg hover:bg-[#c2ee00] disabled:opacity-40 font-semibold text-sm transition-colors"
+          className="w-full py-3 min-h-[44px] px-3 bg-[#d4ff00] text-black rounded-lg hover:bg-[#c2ee00] disabled:opacity-40 font-semibold text-sm transition-colors active:scale-[0.97]"
         >
           {loading ? 'Envoi...' : 'Envoyer le lien'}
         </button>
@@ -135,7 +135,7 @@ export function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full px-3 py-2 bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] text-white placeholder:text-[#777] text-sm"
+          className="w-full px-3 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] text-white placeholder:text-[#777] text-sm"
           placeholder="votre@email.com"
         />
       </div>
@@ -149,7 +149,7 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full px-3 py-2 bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] text-white placeholder:text-[#777] text-sm"
+          className="w-full px-3 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] text-white placeholder:text-[#777] text-sm"
           placeholder="••••••••"
         />
       </div>
@@ -157,14 +157,14 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-1.5 px-3 bg-[#d4ff00] text-black rounded-lg hover:bg-[#c2ee00] disabled:opacity-40 font-semibold text-sm transition-colors"
+        className="w-full py-3 min-h-[44px] px-3 bg-[#d4ff00] text-black rounded-lg hover:bg-[#c2ee00] disabled:opacity-40 font-semibold text-sm transition-colors active:scale-[0.97]"
       >
         {loading ? 'Connexion...' : 'Connexion'}
       </button>
       <button
         type="button"
         onClick={() => { setShowReset(true); setError('') }}
-        className="w-full text-[#888] text-sm hover:text-white transition-colors"
+        className="w-full min-h-[44px] text-[#888] text-sm hover:text-white transition-colors"
       >
         Mot de passe oublié ?
       </button>

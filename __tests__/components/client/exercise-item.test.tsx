@@ -20,6 +20,7 @@ describe('ExerciseItem', () => {
       id: 'e1', name: 'Squat', description: 'Flexion de jambes',
       video_url: 'https://example.com/video.mp4', category: 'Bas du corps',
       coach_id: 'c1', created_at: '',
+      equipment: '', muscle_group: '', instructions: '', difficulty: '',
     },
     exercise_log: null,
   }
