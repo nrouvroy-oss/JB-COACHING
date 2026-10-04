@@ -1,4 +1,4 @@
-// Page cr\u00e9ation objectif course \u2014 wizard 7 \u00e9tapes
+// Page création objectif course — wizard 7 étapes
 import { createServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { WizardForm } from './wizard-form'
@@ -8,7 +8,7 @@ export default async function NewGoalPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // V\u00e9rifier qu\u2019il n\u2019a pas d\u00e9j\u00e0 un objectif actif
+  // Vérifier qu’il n’a pas déjà un objectif actif
   const { data: existing } = await supabase
     .from('race_goals')
     .select('id')

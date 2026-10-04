@@ -1,6 +1,6 @@
 'use client'
 
-// Wizard cr\u00e9ation objectif trail \u2014 7 \u00e9tapes + r\u00e9sum\u00e9
+// Wizard création objectif trail — 7 étapes + résumé
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
@@ -11,7 +11,7 @@ import { createRaceGoal } from '../actions'
 // ── Types locaux pour le state du wizard ──────────────────────────────────────
 
 interface WizardData {
-  // \u00c9tape 1 \u2014 Ma course
+  // Étape 1 — Ma course
   race_name: string
   race_date: string
   distance_km: string
@@ -19,15 +19,15 @@ interface WizardData {
   elevation_loss_m: string
   terrain_type: string
   max_altitude_m: string
-  // \u00c9tape 2 \u2014 Mon objectif
+  // Étape 2 — Mon objectif
   goal_type: string
   target_time_hours: string
   target_time_minutes: string
-  // \u00c9tape 3 \u2014 Mon niveau
+  // Étape 3 — Mon niveau
   declared_level: string
   running_experience: string
   trail_experience: string
-  // \u00c9tape 4 \u2014 Mon entra\u00eenement
+  // Étape 4 — Mon entraînement
   sessions_per_week: string
   weekly_distance_km: string
   weekly_duration_minutes: string
@@ -35,14 +35,14 @@ interface WizardData {
   longest_trail_km: string
   longest_trail_elevation_m: string
   longest_trail_date: string
-  // \u00c9tape 5 \u2014 Ma sortie longue
+  // Étape 5 — Ma sortie longue
   longest_run_minutes: string
   longest_run_km: string
   longest_run_elevation_m: string
-  // \u00c9tape 6 \u2014 Mes disponibilit\u00e9s
+  // Étape 6 — Mes disponibilités
   availability: Record<string, { available: boolean; max_minutes: string }>
   preferred_long_run_day: string
-  // \u00c9tape 7 \u2014 Terrain & contraintes
+  // Étape 7 — Terrain & contraintes
   terrain_access: string[]
   has_strength_access: boolean
   strength_location: string
@@ -56,17 +56,17 @@ const JOURS_LABELS: Record<string, string> = {
   jeudi: 'Jeu', vendredi: 'Ven', samedi: 'Sam', dimanche: 'Dim',
 }
 
-// Valeurs initiales des disponibilit\u00e9s
+// Valeurs initiales des disponibilités
 function initialAvailability() {
   const avail: Record<string, { available: boolean; max_minutes: string }> = {}
   for (const j of JOURS) avail[j] = { available: false, max_minutes: '' }
   return avail
 }
 
-// Nombre total d\u2019\u00e9tapes (7 + r\u00e9sum\u00e9)
+// Nombre total d’étapes (7 + résumé)
 const TOTAL_STEPS = 8
 
-// ── Titre d\u2019\u00e9tape avec typo Bricolage Grotesque ─────────────────────────────
+// ── Titre d’étape avec typo Bricolage Grotesque ─────────────────────────────
 
 function StepTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -110,7 +110,7 @@ function RadioOption({
   )
 }
 
-// ── Case \u00e0 cocher custom ──────────────────────────────────────────────────────
+// ── Case à cocher custom ──────────────────────────────────────────────────────
 
 function CheckboxOption({
   label,
@@ -212,12 +212,12 @@ export function WizardForm() {
     constraints_notes: '',
   })
 
-  // Raccourci pour mettre \u00e0 jour un champ
+  // Raccourci pour mettre à jour un champ
   function set<K extends keyof WizardData>(key: K, value: WizardData[K]) {
     setData((prev) => ({ ...prev, [key]: value }))
   }
 
-  // Mettre \u00e0 jour une disponibilit\u00e9
+  // Mettre à jour une disponibilité
   function setAvail(day: string, field: 'available' | 'max_minutes', value: boolean | string) {
     setData((prev) => ({
       ...prev,
@@ -228,7 +228,7 @@ export function WizardForm() {
     }))
   }
 
-  // Basculer un \u00e9l\u00e9ment terrain_access
+  // Basculer un élément terrain_access
   function toggleTerrain(val: string) {
     setData((prev) => ({
       ...prev,
@@ -246,7 +246,7 @@ export function WizardForm() {
     if (step > 1) setStep(step - 1)
   }
 
-  // Validation simple par \u00e9tape (champs obligatoires)
+  // Validation simple par étape (champs obligatoires)
   function canContinue(): boolean {
     switch (step) {
       case 1:
@@ -274,7 +274,7 @@ export function WizardForm() {
     startTransition(async () => {
       const fd = new FormData()
 
-      // \u00c9tape 1
+      // Étape 1
       fd.set('race_name', data.race_name)
       fd.set('race_date', data.race_date)
       fd.set('distance_km', data.distance_km)
@@ -283,19 +283,19 @@ export function WizardForm() {
       if (data.terrain_type) fd.set('terrain_type', data.terrain_type)
       if (data.max_altitude_m) fd.set('max_altitude_m', data.max_altitude_m)
 
-      // \u00c9tape 2
+      // Étape 2
       fd.set('goal_type', data.goal_type)
       if (data.goal_type === 'target_time' && (data.target_time_hours || data.target_time_minutes)) {
         const totalMin = (parseInt(data.target_time_hours || '0') * 60) + parseInt(data.target_time_minutes || '0')
         if (totalMin > 0) fd.set('target_time_minutes', String(totalMin))
       }
 
-      // \u00c9tape 3
+      // Étape 3
       fd.set('declared_level', data.declared_level)
       fd.set('running_experience', data.running_experience)
       fd.set('trail_experience', data.trail_experience)
 
-      // \u00c9tape 4
+      // Étape 4
       fd.set('sessions_per_week', data.sessions_per_week)
       fd.set('weekly_distance_km', data.weekly_distance_km)
       fd.set('weekly_duration_minutes', data.weekly_duration_minutes)
@@ -304,12 +304,12 @@ export function WizardForm() {
       if (data.longest_trail_elevation_m) fd.set('longest_trail_elevation_m', data.longest_trail_elevation_m)
       if (data.longest_trail_date) fd.set('longest_trail_date', data.longest_trail_date)
 
-      // \u00c9tape 5
+      // Étape 5
       fd.set('longest_run_minutes', data.longest_run_minutes)
       fd.set('longest_run_km', data.longest_run_km)
       fd.set('longest_run_elevation_m', data.longest_run_elevation_m)
 
-      // \u00c9tape 6 \u2014 Disponibilit\u00e9s
+      // Étape 6 — Disponibilités
       for (const day of JOURS) {
         fd.set(`avail_${day}`, String(data.availability[day].available))
         if (data.availability[day].max_minutes) {
@@ -318,7 +318,7 @@ export function WizardForm() {
       }
       fd.set('preferred_long_run_day', data.preferred_long_run_day)
 
-      // \u00c9tape 7
+      // Étape 7
       for (const t of data.terrain_access) {
         fd.append('terrain_access', t)
       }
@@ -353,7 +353,7 @@ export function WizardForm() {
   }
 
   // ══════════════════════════════════════════════════════════════════════════
-  // RENDU DES \u00c9TAPES
+  // RENDU DES ÉTAPES
   // ══════════════════════════════════════════════════════════════════════════
 
   return (
@@ -362,7 +362,7 @@ export function WizardForm() {
       <div className="mb-2">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-[#888]">
-            \u00c9tape {Math.min(step, 7)} / 7
+            Étape {Math.min(step, 7)} / 7
           </span>
           {step <= 7 && (
             <span className="text-xs text-[#888]">
@@ -373,7 +373,7 @@ export function WizardForm() {
         <ProgressBar percent={(step / TOTAL_STEPS) * 100} />
       </div>
 
-      {/* Contenu de l\u2019\u00e9tape */}
+      {/* Contenu de l’étape */}
       <div className="flex-1 py-6">
         {step === 1 && <StepRace data={data} set={set} />}
         {step === 2 && <StepGoal data={data} set={set} />}
@@ -416,7 +416,7 @@ export function WizardForm() {
             onClick={prev}
             className="flex-1 min-h-[48px] rounded-xl"
           >
-            Pr\u00e9c\u00e9dent
+            Précédent
           </Button>
         )}
         {step < TOTAL_STEPS ? (
@@ -433,7 +433,7 @@ export function WizardForm() {
             disabled={isPending}
             className="flex-1 min-h-[48px] rounded-xl"
           >
-            {isPending ? 'Cr\u00e9ation en cours...' : 'Cr\u00e9er ma pr\u00e9paration'}
+            {isPending ? 'Création en cours...' : 'Créer ma préparation'}
           </Button>
         )}
       </div>
@@ -442,7 +442,7 @@ export function WizardForm() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// \u00c9TAPE 1 \u2014 MA COURSE
+// ÉTAPE 1 — MA COURSE
 // ══════════════════════════════════════════════════════════════════════════════
 
 function StepRace({
@@ -454,10 +454,10 @@ function StepRace({
 }) {
   const terrainOptions = [
     { value: 'roulant', label: 'Roulant' },
-    { value: 'vallonne', label: 'Vallonn\u00e9' },
+    { value: 'vallonne', label: 'Vallonné' },
     { value: 'montagne', label: 'Montagne' },
     { value: 'technique', label: 'Technique' },
-    { value: 'tres_technique', label: 'Tr\u00e8s technique' },
+    { value: 'tres_technique', label: 'Très technique' },
   ]
 
   return (
@@ -491,7 +491,7 @@ function StepRace({
       />
 
       <Input
-        label="D\u00e9nivel\u00e9 positif (m)"
+        label="Dénivelé positif (m)"
         id="elevation_gain_m"
         type="number"
         placeholder="2500"
@@ -501,7 +501,7 @@ function StepRace({
       />
 
       <Input
-        label="D\u00e9nivel\u00e9 n\u00e9gatif (m) \u2014 optionnel"
+        label="Dénivelé négatif (m) — optionnel"
         id="elevation_loss_m"
         type="number"
         placeholder="2500"
@@ -521,7 +521,7 @@ function StepRace({
           onChange={(e) => set('terrain_type', e.target.value)}
           className="w-full px-3 py-3 min-h-[44px] bg-[#222] border border-[#333] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] focus:border-[#d4ff00] text-white text-sm transition-colors"
         >
-          <option value="">S\u00e9lectionner</option>
+          <option value="">Sélectionner</option>
           {terrainOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
@@ -529,7 +529,7 @@ function StepRace({
       </div>
 
       <Input
-        label="Altitude max (m) \u2014 optionnel"
+        label="Altitude max (m) — optionnel"
         id="max_altitude_m"
         type="number"
         placeholder="3000"
@@ -542,7 +542,7 @@ function StepRace({
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// \u00c9TAPE 2 \u2014 MON OBJECTIF
+// ÉTAPE 2 — MON OBJECTIF
 // ══════════════════════════════════════════════════════════════════════════════
 
 function StepGoal({
@@ -554,8 +554,8 @@ function StepGoal({
 }) {
   const goals = [
     { value: 'finish', label: 'Finir', description: 'Mon premier objectif est de franchir la ligne' },
-    { value: 'comfortable', label: 'Confort', description: 'Finir en \u00e9tant bien, sans souffrir' },
-    { value: 'target_time', label: 'Chrono', description: 'Viser un temps pr\u00e9cis' },
+    { value: 'comfortable', label: 'Confort', description: 'Finir en étant bien, sans souffrir' },
+    { value: 'target_time', label: 'Chrono', description: 'Viser un temps précis' },
     { value: 'performance', label: 'Performance', description: 'Donner le maximum, classement' },
   ]
 
@@ -563,7 +563,7 @@ function StepGoal({
     <div className="space-y-4">
       <StepTitle>Mon objectif</StepTitle>
       <p className="text-sm text-[#888] -mt-2 mb-4">
-        Qu\u2019est-ce que tu vises pour cette course ?
+        Qu’est-ce que tu vises pour cette course ?
       </p>
 
       <div className="space-y-3">
@@ -578,10 +578,10 @@ function StepGoal({
         ))}
       </div>
 
-      {/* Temps cible affich\u00e9 uniquement si objectif chrono */}
+      {/* Temps cible affiché uniquement si objectif chrono */}
       {data.goal_type === 'target_time' && (
         <div className="mt-6 p-4 bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg space-y-3">
-          <p className="text-sm text-[#ccc] font-medium">Temps vis\u00e9</p>
+          <p className="text-sm text-[#ccc] font-medium">Temps visé</p>
           <div className="flex gap-3">
             <Input
               label="Heures"
@@ -610,7 +610,7 @@ function StepGoal({
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// \u00c9TAPE 3 \u2014 MON NIVEAU
+// ÉTAPE 3 — MON NIVEAU
 // ══════════════════════════════════════════════════════════════════════════════
 
 function StepLevel({
@@ -621,33 +621,33 @@ function StepLevel({
   set: <K extends keyof WizardData>(k: K, v: WizardData[K]) => void
 }) {
   const levels = [
-    { value: 'debutant', label: 'D\u00e9butant', description: 'Je d\u00e9bute la course \u00e0 pied' },
-    { value: 'intermediaire', label: 'Interm\u00e9diaire', description: 'Je cours r\u00e9guli\u00e8rement' },
-    { value: 'confirme', label: 'Confirm\u00e9', description: 'J\u2019ai de l\u2019exp\u00e9rience en comp\u00e9tition' },
-    { value: 'avance', label: 'Avanc\u00e9', description: 'Je m\u2019entra\u00eene intensivement' },
+    { value: 'debutant', label: 'Débutant', description: 'Je débute la course à pied' },
+    { value: 'intermediaire', label: 'Intermédiaire', description: 'Je cours régulièrement' },
+    { value: 'confirme', label: 'Confirmé', description: 'J’ai de l’expérience en compétition' },
+    { value: 'avance', label: 'Avancé', description: 'Je m’entraîne intensivement' },
   ]
 
   const runExp = [
-    { value: '<1an', label: 'Moins d\u20191 an' },
-    { value: '1-2ans', label: '1 \u00e0 2 ans' },
-    { value: '2-5ans', label: '2 \u00e0 5 ans' },
+    { value: '<1an', label: 'Moins d’1 an' },
+    { value: '1-2ans', label: '1 à 2 ans' },
+    { value: '2-5ans', label: '2 à 5 ans' },
     { value: '5+ans', label: 'Plus de 5 ans' },
   ]
 
   const trailExp = [
     { value: 'jamais', label: 'Jamais fait de trail' },
     { value: 'quelques_courts', label: 'Quelques courts trails' },
-    { value: 'regulierement', label: 'Je fais des trails r\u00e9guli\u00e8rement' },
-    { value: 'experimente', label: 'Exp\u00e9riment\u00e9 en trail' },
+    { value: 'regulierement', label: 'Je fais des trails régulièrement' },
+    { value: 'experimente', label: 'Expérimenté en trail' },
   ]
 
   return (
     <div className="space-y-6">
       <StepTitle>Mon niveau</StepTitle>
 
-      {/* Niveau d\u00e9clar\u00e9 */}
+      {/* Niveau déclaré */}
       <div>
-        <p className="text-sm text-[#888] mb-3 uppercase tracking-wide font-medium">Niveau g\u00e9n\u00e9ral</p>
+        <p className="text-sm text-[#888] mb-3 uppercase tracking-wide font-medium">Niveau général</p>
         <div className="space-y-2">
           {levels.map((l) => (
             <RadioOption
@@ -661,9 +661,9 @@ function StepLevel({
         </div>
       </div>
 
-      {/* Exp\u00e9rience course */}
+      {/* Expérience course */}
       <div>
-        <p className="text-sm text-[#888] mb-3 uppercase tracking-wide font-medium">Exp\u00e9rience en course \u00e0 pied</p>
+        <p className="text-sm text-[#888] mb-3 uppercase tracking-wide font-medium">Expérience en course à pied</p>
         <div className="space-y-2">
           {runExp.map((r) => (
             <RadioOption
@@ -676,9 +676,9 @@ function StepLevel({
         </div>
       </div>
 
-      {/* Exp\u00e9rience trail */}
+      {/* Expérience trail */}
       <div>
-        <p className="text-sm text-[#888] mb-3 uppercase tracking-wide font-medium">Exp\u00e9rience en trail</p>
+        <p className="text-sm text-[#888] mb-3 uppercase tracking-wide font-medium">Expérience en trail</p>
         <div className="space-y-2">
           {trailExp.map((t) => (
             <RadioOption
@@ -695,7 +695,7 @@ function StepLevel({
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// \u00c9TAPE 4 \u2014 MON ENTRA\u00ceNEMENT
+// ÉTAPE 4 — MON ENTRAÎNEMENT
 // ══════════════════════════════════════════════════════════════════════════════
 
 function StepTraining({
@@ -707,13 +707,13 @@ function StepTraining({
 }) {
   return (
     <div className="space-y-4">
-      <StepTitle>Mon entra\u00eenement</StepTitle>
+      <StepTitle>Mon entraînement</StepTitle>
       <p className="text-sm text-[#888] -mt-2 mb-4">
-        D\u00e9cris ton volume d\u2019entra\u00eenement actuel typique.
+        Décris ton volume d’entraînement actuel typique.
       </p>
 
       <Input
-        label="S\u00e9ances par semaine"
+        label="Séances par semaine"
         id="sessions_per_week"
         type="number"
         placeholder="4"
@@ -734,7 +734,7 @@ function StepTraining({
       />
 
       <Input
-        label="Dur\u00e9e hebdo (minutes)"
+        label="Durée hebdo (minutes)"
         id="weekly_duration_minutes"
         type="number"
         placeholder="300"
@@ -753,10 +753,10 @@ function StepTraining({
         onChange={(e) => set('weekly_elevation_gain_m', e.target.value)}
       />
 
-      {/* Plus long trail r\u00e9alis\u00e9 \u2014 optionnel */}
+      {/* Plus long trail réalisé — optionnel */}
       <div className="mt-6 pt-4 border-t border-[#2a2a2a]">
         <p className="text-sm text-[#888] mb-3 uppercase tracking-wide font-medium">
-          Plus long trail r\u00e9alis\u00e9 (optionnel)
+          Plus long trail réalisé (optionnel)
         </p>
 
         <div className="space-y-4">
@@ -771,7 +771,7 @@ function StepTraining({
           />
 
           <Input
-            label="D\u00e9nivel\u00e9 positif (m)"
+            label="Dénivelé positif (m)"
             id="longest_trail_elevation_m"
             type="number"
             placeholder="1500"
@@ -794,7 +794,7 @@ function StepTraining({
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// \u00c9TAPE 5 \u2014 MA SORTIE LONGUE
+// ÉTAPE 5 — MA SORTIE LONGUE
 // ══════════════════════════════════════════════════════════════════════════════
 
 function StepLongRun({
@@ -808,11 +808,11 @@ function StepLongRun({
     <div className="space-y-4">
       <StepTitle>Ma sortie longue</StepTitle>
       <p className="text-sm text-[#888] -mt-2 mb-4">
-        Ta sortie longue typique actuelle (ta plus longue sortie r\u00e9cente).
+        Ta sortie longue typique actuelle (ta plus longue sortie récente).
       </p>
 
       <Input
-        label="Dur\u00e9e (minutes)"
+        label="Durée (minutes)"
         id="longest_run_minutes"
         type="number"
         placeholder="120"
@@ -832,7 +832,7 @@ function StepLongRun({
       />
 
       <Input
-        label="D\u00e9nivel\u00e9 positif (m)"
+        label="Dénivelé positif (m)"
         id="longest_run_elevation_m"
         type="number"
         placeholder="600"
@@ -845,7 +845,7 @@ function StepLongRun({
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// \u00c9TAPE 6 \u2014 MES DISPONIBILIT\u00c9S
+// ÉTAPE 6 — MES DISPONIBILITÉS
 // ══════════════════════════════════════════════════════════════════════════════
 
 function StepAvailability({
@@ -859,9 +859,9 @@ function StepAvailability({
 }) {
   return (
     <div className="space-y-4">
-      <StepTitle>Mes disponibilit\u00e9s</StepTitle>
+      <StepTitle>Mes disponibilités</StepTitle>
       <p className="text-sm text-[#888] -mt-2 mb-4">
-        Quels jours peux-tu t\u2019entra\u00eener ? Et combien de temps max ?
+        Quels jours peux-tu t’entraîner ? Et combien de temps max ?
       </p>
 
       {/* Grille des 7 jours */}
@@ -902,7 +902,7 @@ function StepAvailability({
                 </span>
               </button>
 
-              {/* Input dur\u00e9e max si disponible */}
+              {/* Input durée max si disponible */}
               {data.availability[jour].available && (
                 <div className="flex items-center gap-2">
                   <input
@@ -922,10 +922,10 @@ function StepAvailability({
         ))}
       </div>
 
-      {/* Jour pr\u00e9f\u00e9r\u00e9 sortie longue */}
+      {/* Jour préféré sortie longue */}
       <div className="mt-6">
         <label htmlFor="preferred_long_run_day" className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">
-          Jour pr\u00e9f\u00e9r\u00e9 pour la sortie longue
+          Jour préféré pour la sortie longue
         </label>
         <select
           id="preferred_long_run_day"
@@ -943,7 +943,7 @@ function StepAvailability({
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// \u00c9TAPE 7 \u2014 TERRAIN & CONTRAINTES
+// ÉTAPE 7 — TERRAIN & CONTRAINTES
 // ══════════════════════════════════════════════════════════════════════════════
 
 function StepConstraints({
@@ -957,8 +957,8 @@ function StepConstraints({
 }) {
   const terrainOptions = [
     { value: 'plat', label: 'Plat' },
-    { value: 'petites_cotes', label: 'Petites c\u00f4tes' },
-    { value: 'vallonne', label: 'Vallonn\u00e9' },
+    { value: 'petites_cotes', label: 'Petites côtes' },
+    { value: 'vallonne', label: 'Vallonné' },
     { value: 'montagne', label: 'Montagne' },
     { value: 'escaliers', label: 'Escaliers' },
     { value: 'tapis_incline', label: 'Tapis inclinable' },
@@ -968,10 +968,10 @@ function StepConstraints({
     <div className="space-y-6">
       <StepTitle>Terrain & contraintes</StepTitle>
 
-      {/* Acc\u00e8s terrain */}
+      {/* Accès terrain */}
       <div>
         <p className="text-sm text-[#888] mb-3 uppercase tracking-wide font-medium">
-          \u00c0 quels terrains as-tu acc\u00e8s pour t\u2019entra\u00eener ?
+          À quels terrains as-tu accès pour t’entraîner ?
         </p>
         <div className="grid grid-cols-2 gap-2">
           {terrainOptions.map((t) => (
@@ -985,10 +985,10 @@ function StepConstraints({
         </div>
       </div>
 
-      {/* Acc\u00e8s renforcement */}
+      {/* Accès renforcement */}
       <div className="border-t border-[#2a2a2a] pt-4">
         <Toggle
-          label="Acc\u00e8s \u00e0 du mat\u00e9riel de renforcement ?"
+          label="Accès à du matériel de renforcement ?"
           checked={data.has_strength_access}
           onChange={(v) => set('has_strength_access', v)}
         />
@@ -1017,12 +1017,12 @@ function StepConstraints({
       {/* Contraintes / notes */}
       <div>
         <label htmlFor="constraints_notes" className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">
-          Contraintes ou informations suppl\u00e9mentaires
+          Contraintes ou informations supplémentaires
         </label>
         <textarea
           id="constraints_notes"
           rows={4}
-          placeholder="Blessures, pathologies, mat\u00e9riel disponible, pr\u00e9f\u00e9rences..."
+          placeholder="Blessures, pathologies, matériel disponible, préférences..."
           value={data.constraints_notes}
           onChange={(e) => set('constraints_notes', e.target.value)}
           className="w-full px-3 py-3 min-h-[44px] bg-[#222] border border-[#333] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] focus:border-[#d4ff00] text-white placeholder:text-[#777] text-sm transition-colors resize-none"
@@ -1033,7 +1033,7 @@ function StepConstraints({
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// R\u00c9SUM\u00c9
+// RÉSUMÉ
 // ══════════════════════════════════════════════════════════════════════════════
 
 function StepSummary({
@@ -1047,23 +1047,23 @@ function StepSummary({
 }) {
   // Labels lisibles
   const terrainLabels: Record<string, string> = {
-    roulant: 'Roulant', vallonne: 'Vallonn\u00e9', montagne: 'Montagne',
-    technique: 'Technique', tres_technique: 'Tr\u00e8s technique',
+    roulant: 'Roulant', vallonne: 'Vallonné', montagne: 'Montagne',
+    technique: 'Technique', tres_technique: 'Très technique',
   }
   const goalLabels: Record<string, string> = {
     finish: 'Finir', comfortable: 'Confort', target_time: 'Chrono', performance: 'Performance',
   }
   const levelLabels: Record<string, string> = {
-    debutant: 'D\u00e9butant', intermediaire: 'Interm\u00e9diaire', confirme: 'Confirm\u00e9', avance: 'Avanc\u00e9',
+    debutant: 'Débutant', intermediaire: 'Intermédiaire', confirme: 'Confirmé', avance: 'Avancé',
   }
   const runExpLabels: Record<string, string> = {
-    '<1an': 'Moins d\u20191 an', '1-2ans': '1-2 ans', '2-5ans': '2-5 ans', '5+ans': '5+ ans',
+    '<1an': 'Moins d’1 an', '1-2ans': '1-2 ans', '2-5ans': '2-5 ans', '5+ans': '5+ ans',
   }
   const trailExpLabels: Record<string, string> = {
-    jamais: 'Jamais', quelques_courts: 'Quelques courts', regulierement: 'R\u00e9guli\u00e8rement', experimente: 'Exp\u00e9riment\u00e9',
+    jamais: 'Jamais', quelques_courts: 'Quelques courts', regulierement: 'Régulièrement', experimente: 'Expérimenté',
   }
   const terrainAccessLabels: Record<string, string> = {
-    plat: 'Plat', petites_cotes: 'Petites c\u00f4tes', vallonne: 'Vallonn\u00e9',
+    plat: 'Plat', petites_cotes: 'Petites côtes', vallonne: 'Vallonné',
     montagne: 'Montagne', escaliers: 'Escaliers', tapis_incline: 'Tapis inclinable',
   }
   const strengthLabels: Record<string, string> = {
@@ -1075,7 +1075,7 @@ function StepSummary({
 
   return (
     <div className="space-y-5">
-      <StepTitle>R\u00e9sum\u00e9</StepTitle>
+      <StepTitle>Résumé</StepTitle>
 
       {/* Semaines restantes */}
       {weeksUntilRace !== null && (
@@ -1102,22 +1102,22 @@ function StepSummary({
       <SummarySection title="Mon objectif">
         <SummaryRow label="Objectif" value={goalLabels[data.goal_type] || data.goal_type} />
         {data.goal_type === 'target_time' && (
-          <SummaryRow label="Temps vis\u00e9" value={formatTargetTime()} />
+          <SummaryRow label="Temps visé" value={formatTargetTime()} />
         )}
       </SummarySection>
 
       {/* Section niveau */}
       <SummarySection title="Mon niveau">
         <SummaryRow label="Niveau" value={levelLabels[data.declared_level] || '-'} />
-        <SummaryRow label="Course \u00e0 pied" value={runExpLabels[data.running_experience] || '-'} />
+        <SummaryRow label="Course à pied" value={runExpLabels[data.running_experience] || '-'} />
         <SummaryRow label="Trail" value={trailExpLabels[data.trail_experience] || '-'} />
       </SummarySection>
 
-      {/* Section entra\u00eenement */}
-      <SummarySection title="Mon entra\u00eenement">
-        <SummaryRow label="S\u00e9ances/sem" value={`${data.sessions_per_week}`} />
+      {/* Section entraînement */}
+      <SummarySection title="Mon entraînement">
+        <SummaryRow label="Séances/sem" value={`${data.sessions_per_week}`} />
         <SummaryRow label="Distance/sem" value={`${data.weekly_distance_km} km`} />
-        <SummaryRow label="Dur\u00e9e/sem" value={`${data.weekly_duration_minutes} min`} />
+        <SummaryRow label="Durée/sem" value={`${data.weekly_duration_minutes} min`} />
         <SummaryRow label="D+/sem" value={`${data.weekly_elevation_gain_m} m`} />
         {data.longest_trail_km && (
           <SummaryRow label="Plus long trail" value={`${data.longest_trail_km} km / ${data.longest_trail_elevation_m || 0} m D+`} />
@@ -1126,13 +1126,13 @@ function StepSummary({
 
       {/* Section sortie longue */}
       <SummarySection title="Ma sortie longue">
-        <SummaryRow label="Dur\u00e9e" value={`${data.longest_run_minutes} min`} />
+        <SummaryRow label="Durée" value={`${data.longest_run_minutes} min`} />
         <SummaryRow label="Distance" value={`${data.longest_run_km} km`} />
         <SummaryRow label="D+" value={`${data.longest_run_elevation_m} m`} />
       </SummarySection>
 
-      {/* Section disponibilit\u00e9s */}
-      <SummarySection title="Mes disponibilit\u00e9s">
+      {/* Section disponibilités */}
+      <SummarySection title="Mes disponibilités">
         <SummaryRow
           label="Jours"
           value={joursDispos.length > 0 ? joursDispos.map((j) => JOURS_LABELS[j]).join(', ') : 'Aucun'}
@@ -1172,7 +1172,7 @@ function StepSummary({
   )
 }
 
-// ── Composants utilitaires pour le r\u00e9sum\u00e9 ─────────────────────────────────────
+// ── Composants utilitaires pour le résumé ─────────────────────────────────────
 
 function SummarySection({ title, children }: { title: string; children: React.ReactNode }) {
   return (

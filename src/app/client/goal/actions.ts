@@ -7,16 +7,16 @@ import { revalidatePath } from 'next/cache'
 export async function createRaceGoal(formData: FormData) {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Non connect\u00e9' }
+  if (!user) return { error: 'Non connecté' }
 
-  // R\u00e9cup\u00e9rer le coach_id du sportif
+  // Récupérer le coach_id du sportif
   const { data: profile } = await supabase
     .from('profiles')
     .select('coach_id')
     .eq('id', user.id)
     .single()
 
-  // V\u00e9rifier qu\u2019il n\u2019a pas d\u00e9j\u00e0 un objectif actif
+  // Vérifier qu’il n’a pas déjà un objectif actif
   const { data: existing } = await supabase
     .from('race_goals')
     .select('id')
@@ -25,10 +25,10 @@ export async function createRaceGoal(formData: FormData) {
     .limit(1)
 
   if (existing && existing.length > 0) {
-    return { error: 'Tu as d\u00e9j\u00e0 un objectif en cours.' }
+    return { error: 'Tu as déjà un objectif en cours.' }
   }
 
-  // Cr\u00e9er le race_goal
+  // Créer le race_goal
   const { data: goal, error: goalError } = await supabase
     .from('race_goals')
     .insert({
@@ -50,9 +50,9 @@ export async function createRaceGoal(formData: FormData) {
     .select('id')
     .single()
 
-  if (goalError || !goal) return { error: 'Erreur lors de la cr\u00e9ation' }
+  if (goalError || !goal) return { error: 'Erreur lors de la création' }
 
-  // Cr\u00e9er le profil trail
+  // Créer le profil trail
   const availability: Record<string, { available: boolean; max_minutes?: number }> = {}
   for (const day of ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']) {
     const avail = formData.get(`avail_${day}`) === 'true'
@@ -87,7 +87,7 @@ export async function createRaceGoal(formData: FormData) {
       constraints_notes: formData.get('constraints_notes') as string || null,
     })
 
-  if (profileError) return { error: 'Erreur lors de la cr\u00e9ation du profil' }
+  if (profileError) return { error: 'Erreur lors de la création du profil' }
 
   revalidatePath('/client')
   return { id: goal.id }
