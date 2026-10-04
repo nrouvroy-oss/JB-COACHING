@@ -131,6 +131,17 @@ export default async function CoachDashboard() {
     lastActiveClient = firstClient
   }
 
+  // ── 6. Objectifs sportifs ──
+  const { count: pendingObjectifs } = await supabase
+    .from('race_goals')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending')
+
+  const { count: activeObjectifs } = await supabase
+    .from('race_goals')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'active')
+
   return (
     <CoachDashboardClient
       stats={{
@@ -138,6 +149,8 @@ export default async function CoachDashboard() {
         activeThisWeek,
         recentFeedbackCount: recentFeedbackCount ?? 0,
       }}
+      pendingObjectifs={pendingObjectifs ?? 0}
+      activeObjectifs={activeObjectifs ?? 0}
       recentFeedbacks={recentFeedbacks ?? []}
       lastActiveClient={lastActiveClient}
       inactiveClients={inactiveClients}

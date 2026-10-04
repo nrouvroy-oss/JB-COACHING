@@ -32,6 +32,8 @@ interface FeedbackEntry {
 
 interface CoachDashboardClientProps {
   stats: DashboardStats
+  pendingObjectifs: number
+  activeObjectifs: number
   recentFeedbacks: FeedbackEntry[]
   lastActiveClient: Profile | null
   inactiveClients: InactiveClient[]
@@ -56,6 +58,8 @@ function formatRelativeDay(dateStr: string | null): string {
 
 export function CoachDashboardClient({
   stats,
+  pendingObjectifs,
+  activeObjectifs,
   recentFeedbacks,
   lastActiveClient,
   inactiveClients,
@@ -84,6 +88,40 @@ export function CoachDashboardClient({
         <StatCard label="Actifs" value={`${stats.activeThisWeek}/${stats.clientCount}`} icon="active" />
         <StatCard label="Feedbacks" value={stats.recentFeedbackCount} icon="feedback" />
       </div>
+
+      {/* Raccourcis objectifs */}
+      {pendingObjectifs > 0 && (
+        <Link
+          href="/coach/preparations"
+          className="flex items-center gap-3 bg-amber-500/[0.08] border border-amber-500/20 rounded-xl p-3.5 hover:border-amber-500/30 transition-all min-h-[48px]"
+        >
+          <div className="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </div>
+          <span className="text-sm font-medium text-amber-400 flex-1">{pendingObjectifs} objectif{pendingObjectifs > 1 ? 's' : ''} à traiter</span>
+          <svg className="w-4 h-4 text-amber-400/50 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      )}
+      {activeObjectifs > 0 && (
+        <Link
+          href="/coach/preparations"
+          className="flex items-center gap-3 bg-[#1c1c1c] border border-[#2a2a2a] rounded-xl p-3.5 hover:border-[#333] transition-all min-h-[48px]"
+        >
+          <div className="w-8 h-8 rounded-lg bg-[#d4ff00]/10 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4 text-[#d4ff00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+            </svg>
+          </div>
+          <span className="text-sm font-medium text-[#888] flex-1">{activeObjectifs} objectif{activeObjectifs > 1 ? 's' : ''} en cours</span>
+          <svg className="w-4 h-4 text-[#555] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      )}
 
       {/* Raccourci dernier client actif → suivi */}
       {lastActiveClient && (

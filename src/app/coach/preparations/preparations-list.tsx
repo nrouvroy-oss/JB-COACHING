@@ -178,7 +178,7 @@ export function PreparationsList({ goals }: PreparationsListProps) {
           <path d="M12 8V6h24v2" strokeLinecap="round" />
           <path d="M12 18c-3 0-6-3-6-6V8h6M36 18c3 0 6-3 6-6V8h-6" strokeLinecap="round" />
         </svg>
-        <p className="font-bold text-white text-sm mb-1">Aucune préparation</p>
+        <p className="font-bold text-white text-sm mb-1">Aucun objectif</p>
         <p className="text-xs text-[#555] max-w-[220px]">
           Tes sportifs n&apos;ont pas encore créé d&apos;objectif course.
           Ils peuvent en créer un depuis leur espace client.
@@ -199,7 +199,7 @@ export function PreparationsList({ goals }: PreparationsListProps) {
       {/* Titre de section */}
       <div className="flex items-center justify-between">
         <h1 className="font-extrabold text-white text-lg" style={{ fontFamily: 'var(--font-bricolage)' }}>
-          Préparations
+          Objectifs sportifs
         </h1>
         <span className="text-xs text-[#555]">{goals.length} dossier{goals.length > 1 ? 's' : ''}</span>
       </div>

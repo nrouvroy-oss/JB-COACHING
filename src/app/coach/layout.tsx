@@ -50,7 +50,7 @@ export default async function CoachLayout({
           <Link href="/coach/exercises" className="text-sm text-[#888] hover:text-[#d4ff00] py-3 transition-colors whitespace-nowrap min-h-[44px] flex items-center">Exercices</Link>
           <Link href="/coach/workouts" className="text-sm text-[#888] hover:text-[#d4ff00] py-3 transition-colors whitespace-nowrap min-h-[44px] flex items-center">Programmes</Link>
           <Link href="/coach/preparations" className="text-sm text-[#888] hover:text-[#d4ff00] py-3 transition-colors whitespace-nowrap min-h-[44px] flex items-center relative">
-            Prépas
+            Objectifs
             {(pendingPrepas ?? 0) > 0 && (
               <span className="absolute -top-0.5 -right-3 w-5 h-5 bg-[#d4ff00] text-black text-[10px] font-bold rounded-full flex items-center justify-center">
                 {pendingPrepas}
