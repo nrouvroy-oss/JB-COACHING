@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
   if (
     request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/signup') ||
-    request.nextUrl.pathname === '/client/goal/new'
+    request.nextUrl.pathname.startsWith('/client/goal/new')
   ) {
     return response
   }
