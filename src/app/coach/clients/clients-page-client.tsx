@@ -46,37 +46,27 @@ export function ClientsPageClient({ clients, clientStats, lastActivityMap, maxCl
 
   return (
     <div>
-      {/* Bannière compacte avec photo de fond — liste des clients */}
-      <div className="relative h-20 rounded-xl overflow-hidden mb-4">
-        <img
-          src="https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=800&q=80"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-        <div className="relative h-full flex flex-col justify-end p-4">
+      {/* En-tête */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
           <h1 className="text-xl font-bold text-white">Mes clients</h1>
           <p className="text-sm text-[#888]">
             {clients.length}{maxClients !== null ? `/${maxClients}` : ''} client{clients.length !== 1 ? 's' : ''}
           </p>
         </div>
-      </div>
-
-      {/* Alerte limite atteinte avec bouton upgrade */}
-      {isAtLimit && (
-        <div className="bg-[#d4ff00]/10 border border-[#d4ff00]/20 rounded-xl p-3 mb-4">
-          <p className="text-sm text-[#d4ff00] font-medium">Limite du plan gratuit atteinte ({maxClients} clients)</p>
-          <p className="text-xs text-[#888] mt-0.5">Passez en Pro pour ajouter des clients illimités — 24€/mois</p>
-          <UpgradeButton />
-        </div>
-      )}
-
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">Mes clients</h2>
         <Button onClick={() => setShowAddModal(true)} size="sm" disabled={isAtLimit}>
           + Ajouter
         </Button>
       </div>
+
+      {/* Alerte limite atteinte */}
+      {isAtLimit && (
+        <div className="bg-[#d4ff00]/[0.05] border border-[#d4ff00]/15 rounded-xl p-4 mb-4">
+          <p className="text-sm text-[#d4ff00] font-bold">Limite atteinte</p>
+          <p className="text-xs text-[#888] mt-0.5">{maxClients} clients max en plan gratuit. Passez en Pro pour débloquer.</p>
+          <UpgradeButton />
+        </div>
+      )}
 
       {clients.length === 0 ? (
         <div className="text-center py-12">
