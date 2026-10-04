@@ -167,15 +167,40 @@ export async function addSession(weekId: string, name: string, dayOfWeek: string
   return {}
 }
 
-// Met à jour une séance (nom, jour, détails, récupération)
-export async function updateSession(sessionId: string, name: string, dayOfWeek: string, clientId: string, details?: string, recovery?: string) {
+// Met à jour une séance (nom, jour, détails, récupération + champs trail optionnels)
+export async function updateSession(
+  sessionId: string,
+  name: string,
+  dayOfWeek: string,
+  clientId: string,
+  details?: string,
+  recovery?: string,
+  sessionType?: string | null,
+  durationMinutes?: number | null,
+  distanceKm?: number | null,
+  elevationGainM?: number | null,
+  intensity?: string | null,
+  objective?: string | null,
+) {
   const user = await requireCoach()
   if (!user) return { error: 'Non autorisé' }
 
   const supabase = await createServerClient()
   const { error } = await supabase
     .from('sessions')
-    .update({ name, day_of_week: dayOfWeek, details: details ?? '', recovery: recovery ?? '' })
+    .update({
+      name,
+      day_of_week: dayOfWeek,
+      details: details ?? '',
+      recovery: recovery ?? '',
+      // Champs trail — null efface la valeur existante
+      session_type: sessionType ?? null,
+      duration_minutes: durationMinutes ?? null,
+      distance_km: distanceKm ?? null,
+      elevation_gain_m: elevationGainM ?? null,
+      intensity: intensity ?? null,
+      objective: objective ?? null,
+    })
     .eq('id', sessionId)
   if (error) return { error: 'Erreur lors de la mise à jour' }
   revalidatePath(`/coach/clients/${clientId}/program`)
@@ -327,6 +352,30 @@ export async function duplicateProgram(sourceProgramId: string, clientId: string
     }
   }
 
+  revalidatePath(`/coach/clients/${clientId}/program`)
+  return {}
+}
+
+// Met à jour les objectifs de volume d'une semaine (distance, durée, D+)
+export async function updateWeekTargets(
+  weekId: string,
+  targetDistanceKm: number | null,
+  targetDurationMinutes: number | null,
+  targetElevationGainM: number | null,
+  clientId: string,
+) {
+  const user = await requireCoach()
+  if (!user) return { error: 'Non autorisé' }
+  const supabase = await createServerClient()
+  const { error } = await supabase
+    .from('weeks')
+    .update({
+      target_distance_km: targetDistanceKm,
+      target_duration_minutes: targetDurationMinutes,
+      target_elevation_gain_m: targetElevationGainM,
+    })
+    .eq('id', weekId)
+  if (error) return { error: 'Erreur' }
   revalidatePath(`/coach/clients/${clientId}/program`)
   return {}
 }

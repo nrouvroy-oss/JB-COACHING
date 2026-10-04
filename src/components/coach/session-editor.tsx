@@ -6,7 +6,38 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ExercisePicker } from '@/components/coach/exercise-picker'
 import { deleteSession, updateSession, addExerciseToSession, removeExerciseFromSession, updateSessionExercise, assignWorkoutToSession, excludeWorkoutExercise, includeWorkoutExercise, updateExerciseDetails } from '@/app/coach/clients/[id]/program/actions'
-import type { SessionWithExercises, Exercise } from '@/lib/types'
+import type { SessionWithExercises, Exercise, SessionType } from '@/lib/types'
+
+// Traductions françaises des types de séance trail
+const SESSION_TYPE_LABELS: Record<string, string> = {
+  easy_run: 'Endurance facile',
+  endurance: 'Endurance',
+  recovery_run: 'Récupération',
+  tempo: 'Tempo',
+  threshold: 'Seuil',
+  intervals: 'Fractionné',
+  hill_repeats: 'Côtes',
+  uphill_training: 'Montée spécifique',
+  downhill_training: 'Descente spécifique',
+  technical_trail: 'Trail technique',
+  long_run: 'Sortie longue',
+  long_trail: 'Sortie trail longue',
+  race_specific: 'Spécifique course',
+  strength_training: 'Renfo',
+  mobility: 'Mobilité',
+  cross_training: 'Cross-training',
+  rest: 'Repos',
+  taper: 'Affûtage',
+  race: 'Course',
+}
+
+// Formate une durée en minutes vers "Xh Xmin" ou "Xmin"
+function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes}min`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${h}h`
+}
 
 interface WorkoutExerciseItem {
   id: string
@@ -44,6 +75,13 @@ export function SessionEditor({ session, sessionNumber, exercises, clientId, wor
   const [editReps, setEditReps] = useState('')
   const [editRest, setEditRest] = useState(0)
   const [editNotes, setEditNotes] = useState('')
+  // Champs trail optionnels
+  const [editSessionType, setEditSessionType] = useState<string>(session.session_type ?? '')
+  const [editDurationMinutes, setEditDurationMinutes] = useState<string>(session.duration_minutes != null ? String(session.duration_minutes) : '')
+  const [editDistanceKm, setEditDistanceKm] = useState<string>(session.distance_km != null ? String(session.distance_km) : '')
+  const [editElevationGainM, setEditElevationGainM] = useState<string>(session.elevation_gain_m != null ? String(session.elevation_gain_m) : '')
+  const [editIntensity, setEditIntensity] = useState<string>(session.intensity ?? '')
+  const [editObjective, setEditObjective] = useState<string>(session.objective ?? '')
   const router = useRouter()
 
   const workoutAssigned = workouts.find(w => w.id === (session as any).workout_id)
@@ -81,7 +119,20 @@ export function SessionEditor({ session, sessionNumber, exercises, clientId, wor
 
   async function handleSaveSession() {
     if (!editName.trim()) return
-    await updateSession(session.id, editName, editDays.join(', '), clientId, editDetails, editRecovery)
+    await updateSession(
+      session.id,
+      editName,
+      editDays.join(', '),
+      clientId,
+      editDetails,
+      editRecovery,
+      editSessionType || null,
+      editDurationMinutes ? parseInt(editDurationMinutes) : null,
+      editDistanceKm ? parseFloat(editDistanceKm) : null,
+      editElevationGainM ? parseInt(editElevationGainM) : null,
+      editIntensity || null,
+      editObjective || null,
+    )
     setEditingSession(false)
     router.refresh()
   }
@@ -157,6 +208,91 @@ export function SessionEditor({ session, sessionNumber, exercises, clientId, wor
             className="w-full px-3 py-3 min-h-[44px] bg-[#141414] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#555]"
             placeholder="Récupération : 30s entre exercices, 2' entre tours..."
           />
+
+          {/* ── Champs trail optionnels ─────────────────────────────────── */}
+          <div className="border-t border-[#2a2a2a] pt-3 space-y-3">
+            <p className="text-xs font-medium text-[#666] uppercase tracking-wide">Trail (optionnel)</p>
+
+            {/* Type de séance */}
+            <div>
+              <label className="block text-xs text-[#888] mb-1">Type de séance</label>
+              <select
+                value={editSessionType}
+                onChange={(e) => setEditSessionType(e.target.value)}
+                className="w-full px-3 py-3 min-h-[44px] bg-[#141414] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00]"
+              >
+                <option value="">— Aucun type —</option>
+                {Object.entries(SESSION_TYPE_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Durée + Distance en ligne */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs text-[#888] mb-1">Durée (min)</label>
+                <input
+                  type="number"
+                  min={0}
+                  value={editDurationMinutes}
+                  onChange={(e) => setEditDurationMinutes(e.target.value)}
+                  className="w-full px-3 py-3 min-h-[44px] bg-[#141414] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#555]"
+                  placeholder="70"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-[#888] mb-1">Distance (km)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={editDistanceKm}
+                  onChange={(e) => setEditDistanceKm(e.target.value)}
+                  className="w-full px-3 py-3 min-h-[44px] bg-[#141414] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#555]"
+                  placeholder="12"
+                />
+              </div>
+            </div>
+
+            {/* D+ */}
+            <div>
+              <label className="block text-xs text-[#888] mb-1">D+ (m)</label>
+              <input
+                type="number"
+                min={0}
+                value={editElevationGainM}
+                onChange={(e) => setEditElevationGainM(e.target.value)}
+                className="w-full px-3 py-3 min-h-[44px] bg-[#141414] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#555]"
+                placeholder="400"
+              />
+            </div>
+
+            {/* Intensité */}
+            <div>
+              <label className="block text-xs text-[#888] mb-1">Intensité</label>
+              <input
+                type="text"
+                value={editIntensity}
+                onChange={(e) => setEditIntensity(e.target.value)}
+                className="w-full px-3 py-3 min-h-[44px] bg-[#141414] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#555]"
+                placeholder="Modérée, Zone 2, Seuil..."
+              />
+            </div>
+
+            {/* Objectif de la séance */}
+            <div>
+              <label className="block text-xs text-[#888] mb-1">Objectif de la séance</label>
+              <textarea
+                value={editObjective}
+                onChange={(e) => setEditObjective(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-3 bg-[#141414] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#555]"
+                placeholder="Développer l'endurance en montée..."
+              />
+            </div>
+          </div>
+
           <div className="flex gap-2">
             <Button size="sm" onClick={handleSaveSession} className="flex-1">Enregistrer</Button>
             <Button size="sm" variant="secondary" onClick={() => setEditingSession(false)}>Annuler</Button>
@@ -188,6 +324,33 @@ export function SessionEditor({ session, sessionNumber, exercises, clientId, wor
           )}
           {session.recovery && (
             <p className="text-xs text-[#d4ff00]/60 mt-1 ml-9">Récup : {session.recovery}</p>
+          )}
+
+          {/* Infos trail — badge type + durée + D+ + objectif */}
+          {(session.session_type || session.duration_minutes || session.elevation_gain_m || session.objective) && (
+            <div className="mt-2 ml-9 space-y-1">
+              {/* Badge type + métriques sur une ligne */}
+              <div className="flex items-center flex-wrap gap-2">
+                {session.session_type && (
+                  <span className="bg-[#d4ff00]/10 text-[#d4ff00] text-[11px] px-2 py-0.5 rounded-full font-medium">
+                    {SESSION_TYPE_LABELS[session.session_type] ?? session.session_type}
+                  </span>
+                )}
+                {session.duration_minutes != null && (
+                  <span className="text-xs text-[#888]">{formatDuration(session.duration_minutes)}</span>
+                )}
+                {session.elevation_gain_m != null && (
+                  <span className="text-xs text-[#888]">{session.elevation_gain_m}m D+</span>
+                )}
+                {session.distance_km != null && (
+                  <span className="text-xs text-[#888]">{session.distance_km} km</span>
+                )}
+              </div>
+              {/* Objectif de la séance */}
+              {session.objective && (
+                <p className="text-[11px] text-[#777] italic">{session.objective}</p>
+              )}
+            </div>
           )}
 
           {/* Actions */}

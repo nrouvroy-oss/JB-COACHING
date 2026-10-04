@@ -5,8 +5,16 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { SessionEditor } from '@/components/coach/session-editor'
-import { deleteWeek, addSession } from '@/app/coach/clients/[id]/program/actions'
+import { deleteWeek, addSession, updateWeekTargets } from '@/app/coach/clients/[id]/program/actions'
 import type { WeekWithSessions, Exercise } from '@/lib/types'
+
+// Formate une durée en minutes vers "Xh Xmin" ou "Xmin"
+function formatWeekDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes}min`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${h}h`
+}
 
 const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
@@ -35,6 +43,11 @@ export function WeekSection({ week, exercises, clientId, workouts = [] }: WeekSe
   const [showAddSession, setShowAddSession] = useState(false)
   const [sessionName, setSessionName] = useState('')
   const [selectedDays, setSelectedDays] = useState<string[]>([])
+  // État du formulaire objectifs volume hebdomadaire
+  const [showTargets, setShowTargets] = useState(false)
+  const [targetDistance, setTargetDistance] = useState<string>(week.target_distance_km != null ? String(week.target_distance_km) : '')
+  const [targetDuration, setTargetDuration] = useState<string>(week.target_duration_minutes != null ? String(week.target_duration_minutes) : '')
+  const [targetElevation, setTargetElevation] = useState<string>(week.target_elevation_gain_m != null ? String(week.target_elevation_gain_m) : '')
   const router = useRouter()
 
   function toggleDay(day: string) {
@@ -59,32 +72,119 @@ export function WeekSection({ week, exercises, clientId, workouts = [] }: WeekSe
     router.refresh()
   }
 
+  // Enregistre les objectifs de volume de la semaine
+  async function handleSaveTargets() {
+    await updateWeekTargets(
+      week.id,
+      targetDistance ? parseFloat(targetDistance) : null,
+      targetDuration ? parseInt(targetDuration) : null,
+      targetElevation ? parseInt(targetElevation) : null,
+      clientId,
+    )
+    setShowTargets(false)
+    router.refresh()
+  }
+
   const sessionCount = week.sessions?.length ?? 0
+  // Indique si au moins un objectif de volume est défini
+  const hasTargets = week.target_distance_km != null || week.target_duration_minutes != null || week.target_elevation_gain_m != null
 
   return (
     <div className="rounded-2xl overflow-hidden border border-[#2a2a2a]">
       {/* En-tête semaine */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-3 p-4 bg-[#1c1c1c] hover:bg-[#202020] transition-colors min-h-[56px]"
-      >
-        <span
-          className="w-9 h-9 rounded-xl bg-[#d4ff00] text-black flex items-center justify-center font-extrabold text-sm shrink-0"
-          style={{ fontFamily: 'Bricolage Grotesque' }}
+      <div className="flex items-center gap-3 p-4 bg-[#1c1c1c] min-h-[56px]">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
         >
-          S{week.week_number}
-        </span>
-        <div className="flex-1 text-left">
-          <h3 className="font-bold text-white text-sm">Semaine {week.week_number}</h3>
-          <p className="text-xs text-[#666]">{sessionCount} séance{sessionCount !== 1 ? 's' : ''}</p>
+          <span
+            className="w-9 h-9 rounded-xl bg-[#d4ff00] text-black flex items-center justify-center font-extrabold text-sm shrink-0"
+            style={{ fontFamily: 'Bricolage Grotesque' }}
+          >
+            S{week.week_number}
+          </span>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-white text-sm">Semaine {week.week_number}</h3>
+            {/* Compteur séances + objectifs volume */}
+            <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5">
+              <p className="text-xs text-[#666]">{sessionCount} séance{sessionCount !== 1 ? 's' : ''}</p>
+              {hasTargets && (
+                <p className="text-xs text-[#888]">
+                  {[
+                    week.target_distance_km != null ? `${week.target_distance_km} km` : null,
+                    week.target_duration_minutes != null ? formatWeekDuration(week.target_duration_minutes) : null,
+                    week.target_elevation_gain_m != null ? `${week.target_elevation_gain_m}m D+` : null,
+                  ].filter(Boolean).join(' · ')}
+                </p>
+              )}
+            </div>
+          </div>
+          <svg
+            className={`w-4 h-4 text-[#666] transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {/* Bouton Objectifs volume */}
+        <button
+          onClick={(e) => { e.stopPropagation(); setShowTargets(!showTargets) }}
+          className={`shrink-0 text-[11px] px-2 py-1 min-h-[44px] rounded-lg transition-colors ${
+            showTargets || hasTargets
+              ? 'text-[#d4ff00] hover:text-[#c2ee00]'
+              : 'text-[#555] hover:text-[#888]'
+          }`}
+        >
+          Objectifs
+        </button>
+      </div>
+
+      {/* Formulaire inline objectifs volume (visible si showTargets) */}
+      {showTargets && (
+        <div className="bg-[#181818] border-t border-[#2a2a2a] px-4 py-3 space-y-3">
+          <p className="text-xs font-medium text-[#666] uppercase tracking-wide">Objectifs volume — Semaine {week.week_number}</p>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <label className="block text-xs text-[#888] mb-1">Distance (km)</label>
+              <input
+                type="number"
+                min={0}
+                step={0.5}
+                value={targetDistance}
+                onChange={(e) => setTargetDistance(e.target.value)}
+                className="w-full px-2 py-2 min-h-[44px] bg-[#141414] border border-[#2a2a2a] rounded-lg text-sm text-white text-center focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#555]"
+                placeholder="48"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-[#888] mb-1">Durée (min)</label>
+              <input
+                type="number"
+                min={0}
+                value={targetDuration}
+                onChange={(e) => setTargetDuration(e.target.value)}
+                className="w-full px-2 py-2 min-h-[44px] bg-[#141414] border border-[#2a2a2a] rounded-lg text-sm text-white text-center focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#555]"
+                placeholder="380"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-[#888] mb-1">D+ (m)</label>
+              <input
+                type="number"
+                min={0}
+                value={targetElevation}
+                onChange={(e) => setTargetElevation(e.target.value)}
+                className="w-full px-2 py-2 min-h-[44px] bg-[#141414] border border-[#2a2a2a] rounded-lg text-sm text-white text-center focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#555]"
+                placeholder="1900"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={handleSaveTargets} className="flex-1">Enregistrer</Button>
+            <Button size="sm" variant="secondary" onClick={() => setShowTargets(false)}>Annuler</Button>
+          </div>
         </div>
-        <svg
-          className={`w-4 h-4 text-[#666] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+      )}
 
       {isOpen && (
         <div className="bg-[#141414] p-3 space-y-3">
