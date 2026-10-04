@@ -56,7 +56,8 @@ export async function middleware(request: NextRequest) {
     }
 
     // Coach qui tente d'accéder à l'espace client → rediriger vers son espace
-    if (profile?.role === 'coach' && request.nextUrl.pathname.startsWith('/client')) {
+    // Exception : /client/goal/new est accessible à tous (wizard sans auth)
+    if (profile?.role === 'coach' && request.nextUrl.pathname.startsWith('/client') && !request.nextUrl.pathname.startsWith('/client/goal/new')) {
       return NextResponse.redirect(new URL('/coach', request.url))
     }
 
