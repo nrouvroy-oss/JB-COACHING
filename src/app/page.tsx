@@ -18,7 +18,7 @@ export default function LandingPage() {
               Connexion
             </Link>
             <Link
-              href="/signup/athlete"
+              href="/client/goal/new"
               className="text-sm font-bold bg-[#d4ff00] text-black px-5 py-2 rounded-full hover:shadow-[0_0_20px_rgba(212,255,0,0.3)] transition-all duration-300"
             >
               Préparer ma course
@@ -63,7 +63,7 @@ export default function LandingPage() {
 
           <div className="mt-10 flex flex-col gap-4 justify-center items-center">
             <Link
-              href="/signup/athlete"
+              href="/client/goal/new"
               className="group inline-flex items-center justify-center px-8 py-4 bg-[#d4ff00] text-black font-extrabold rounded-full text-base hover:shadow-[0_0_40px_rgba(212,255,0,0.25)] transition-all duration-500 w-full sm:w-auto"
               style={{ fontFamily: 'Bricolage Grotesque' }}
             >
@@ -178,7 +178,7 @@ export default function LandingPage() {
               <li className="flex items-start gap-3"><span className="w-1 h-1 bg-[#d4ff00] rounded-full mt-2 shrink-0" />App mobile avec vidéos et chrono</li>
             </ul>
             <Link
-              href="/signup/athlete"
+              href="/client/goal/new"
               className="block w-full py-3.5 bg-[#d4ff00] text-black font-extrabold rounded-full hover:shadow-[0_0_30px_rgba(212,255,0,0.2)] transition-all duration-500 text-sm"
             >
               Préparer mon objectif
@@ -202,7 +202,7 @@ export default function LandingPage() {
             Décris ta course. Un coach construit ta préparation jusqu&apos;au jour J.
           </p>
           <Link
-            href="/signup/athlete"
+            href="/client/goal/new"
             className="inline-flex items-center justify-center mt-8 px-10 py-4 bg-[#d4ff00] text-black font-extrabold rounded-full text-base hover:shadow-[0_0_50px_rgba(212,255,0,0.25)] transition-all duration-500"
             style={{ fontFamily: 'Bricolage Grotesque' }}
           >

@@ -27,8 +27,12 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Les pages /auth et /signup sont toujours accessibles
-  if (request.nextUrl.pathname.startsWith('/auth') || request.nextUrl.pathname.startsWith('/signup')) {
+  // Pages toujours accessibles sans auth
+  if (
+    request.nextUrl.pathname.startsWith('/auth') ||
+    request.nextUrl.pathname.startsWith('/signup') ||
+    request.nextUrl.pathname === '/client/goal/new'
+  ) {
     return response
   }
 

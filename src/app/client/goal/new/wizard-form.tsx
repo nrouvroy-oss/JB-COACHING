@@ -1,12 +1,14 @@
 'use client'
 
-// Wizard création objectif trail — 7 étapes + résumé
+// Wizard création objectif trail — 7 étapes + résumé + inscription (si non connecté)
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ProgressBar } from '@/components/ui/progress-bar'
+import { createBrowserClient } from '@/lib/supabase/client'
 import { createRaceGoal } from '../actions'
+import { assignToDefaultCoach } from '@/app/signup/athlete/actions'
 
 // ── Types locaux pour le state du wizard ──────────────────────────────────────
 
@@ -63,8 +65,8 @@ function initialAvailability() {
   return avail
 }
 
-// Nombre total d’étapes (7 + résumé)
-const TOTAL_STEPS = 8
+// Nombre d’étapes questionnaire (sans résumé ni inscription)
+const QUESTIONNAIRE_STEPS = 7
 
 // ── Titre d’étape avec typo Bricolage Grotesque ─────────────────────────────
 
@@ -173,11 +175,22 @@ function Toggle({
 // COMPOSANT PRINCIPAL
 // ══════════════════════════════════════════════════════════════════════════════
 
-export function WizardForm() {
+export function WizardForm({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [step, setStep] = useState(1)
   const [error, setError] = useState<string | null>(null)
+
+  // Champs inscription (si non connecté)
+  const [signupFirstName, setSignupFirstName] = useState('')
+  const [signupLastName, setSignupLastName] = useState('')
+  const [signupEmail, setSignupEmail] = useState('')
+  const [signupPassword, setSignupPassword] = useState('')
+
+  // Total étapes : 7 questionnaire + résumé + inscription (si non connecté)
+  const TOTAL_STEPS = isLoggedIn ? 8 : 9
+  const SUMMARY_STEP = 8
+  const SIGNUP_STEP = 9
 
   // State global du formulaire
   const [data, setData] = useState<WizardData>({
@@ -268,70 +281,91 @@ export function WizardForm() {
     }
   }
 
-  // Soumission finale
-  function handleSubmit() {
+  // Construit le FormData à partir des données du wizard
+  function buildFormData(): FormData {
+    const fd = new FormData()
+    fd.set('race_name', data.race_name)
+    fd.set('race_date', data.race_date)
+    fd.set('distance_km', data.distance_km)
+    fd.set('elevation_gain_m', data.elevation_gain_m)
+    if (data.elevation_loss_m) fd.set('elevation_loss_m', data.elevation_loss_m)
+    if (data.terrain_type) fd.set('terrain_type', data.terrain_type)
+    if (data.max_altitude_m) fd.set('max_altitude_m', data.max_altitude_m)
+    fd.set('goal_type', data.goal_type)
+    if (data.goal_type === 'target_time' && (data.target_time_hours || data.target_time_minutes)) {
+      const totalMin = (parseInt(data.target_time_hours || '0') * 60) + parseInt(data.target_time_minutes || '0')
+      if (totalMin > 0) fd.set('target_time_minutes', String(totalMin))
+    }
+    fd.set('declared_level', data.declared_level)
+    fd.set('running_experience', data.running_experience)
+    fd.set('trail_experience', data.trail_experience)
+    fd.set('sessions_per_week', data.sessions_per_week)
+    fd.set('weekly_distance_km', data.weekly_distance_km)
+    fd.set('weekly_duration_minutes', data.weekly_duration_minutes)
+    fd.set('weekly_elevation_gain_m', data.weekly_elevation_gain_m)
+    if (data.longest_trail_km) fd.set('longest_trail_km', data.longest_trail_km)
+    if (data.longest_trail_elevation_m) fd.set('longest_trail_elevation_m', data.longest_trail_elevation_m)
+    if (data.longest_trail_date) fd.set('longest_trail_date', data.longest_trail_date)
+    fd.set('longest_run_minutes', data.longest_run_minutes)
+    fd.set('longest_run_km', data.longest_run_km)
+    fd.set('longest_run_elevation_m', data.longest_run_elevation_m)
+    for (const day of JOURS) {
+      fd.set(`avail_${day}`, String(data.availability[day].available))
+      if (data.availability[day].max_minutes) fd.set(`minutes_${day}`, data.availability[day].max_minutes)
+    }
+    fd.set('preferred_long_run_day', data.preferred_long_run_day)
+    for (const t of data.terrain_access) fd.append('terrain_access', t)
+    fd.set('has_strength_access', String(data.has_strength_access))
+    if (data.strength_location) fd.set('strength_location', data.strength_location)
+    if (data.constraints_notes) fd.set('constraints_notes', data.constraints_notes)
+    return fd
+  }
+
+  // Soumission pour utilisateur connecté (étape 8 = résumé)
+  function handleSubmitLoggedIn() {
     setError(null)
     startTransition(async () => {
-      const fd = new FormData()
+      const result = await createRaceGoal(buildFormData())
+      if (result.error) { setError(result.error) }
+      else if (result.id) { router.push(`/client/goal/${result.id}`) }
+    })
+  }
 
-      // Étape 1
-      fd.set('race_name', data.race_name)
-      fd.set('race_date', data.race_date)
-      fd.set('distance_km', data.distance_km)
-      fd.set('elevation_gain_m', data.elevation_gain_m)
-      if (data.elevation_loss_m) fd.set('elevation_loss_m', data.elevation_loss_m)
-      if (data.terrain_type) fd.set('terrain_type', data.terrain_type)
-      if (data.max_altitude_m) fd.set('max_altitude_m', data.max_altitude_m)
+  // Soumission pour non connecté (étape 9 = inscription + création objectif)
+  function handleSubmitWithSignup() {
+    setError(null)
+    if (signupPassword.length < 6) { setError('Le mot de passe doit faire au moins 6 caractères'); return }
+    startTransition(async () => {
+      const supabase = createBrowserClient()
 
-      // Étape 2
-      fd.set('goal_type', data.goal_type)
-      if (data.goal_type === 'target_time' && (data.target_time_hours || data.target_time_minutes)) {
-        const totalMin = (parseInt(data.target_time_hours || '0') * 60) + parseInt(data.target_time_minutes || '0')
-        if (totalMin > 0) fd.set('target_time_minutes', String(totalMin))
+      // Créer le compte
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: signupEmail,
+        password: signupPassword,
+        options: {
+          data: {
+            full_name: `${signupFirstName} ${signupLastName}`,
+            first_name: signupFirstName,
+            last_name: signupLastName,
+            role: 'client',
+          },
+        },
+      })
+
+      if (signUpError) {
+        if (signUpError.message.includes('already registered')) { setError('Cet email est déjà utilisé') }
+        else { setError('Erreur lors de la création du compte') }
+        return
       }
 
-      // Étape 3
-      fd.set('declared_level', data.declared_level)
-      fd.set('running_experience', data.running_experience)
-      fd.set('trail_experience', data.trail_experience)
+      // Assigner au coach par défaut
+      const assignResult = await assignToDefaultCoach()
+      if (assignResult.error) { setError(assignResult.error); return }
 
-      // Étape 4
-      fd.set('sessions_per_week', data.sessions_per_week)
-      fd.set('weekly_distance_km', data.weekly_distance_km)
-      fd.set('weekly_duration_minutes', data.weekly_duration_minutes)
-      fd.set('weekly_elevation_gain_m', data.weekly_elevation_gain_m)
-      if (data.longest_trail_km) fd.set('longest_trail_km', data.longest_trail_km)
-      if (data.longest_trail_elevation_m) fd.set('longest_trail_elevation_m', data.longest_trail_elevation_m)
-      if (data.longest_trail_date) fd.set('longest_trail_date', data.longest_trail_date)
-
-      // Étape 5
-      fd.set('longest_run_minutes', data.longest_run_minutes)
-      fd.set('longest_run_km', data.longest_run_km)
-      fd.set('longest_run_elevation_m', data.longest_run_elevation_m)
-
-      // Étape 6 — Disponibilités
-      for (const day of JOURS) {
-        fd.set(`avail_${day}`, String(data.availability[day].available))
-        if (data.availability[day].max_minutes) {
-          fd.set(`minutes_${day}`, data.availability[day].max_minutes)
-        }
-      }
-      fd.set('preferred_long_run_day', data.preferred_long_run_day)
-
-      // Étape 7
-      for (const t of data.terrain_access) {
-        fd.append('terrain_access', t)
-      }
-      fd.set('has_strength_access', String(data.has_strength_access))
-      if (data.strength_location) fd.set('strength_location', data.strength_location)
-      if (data.constraints_notes) fd.set('constraints_notes', data.constraints_notes)
-
-      const result = await createRaceGoal(fd)
-      if (result.error) {
-        setError(result.error)
-      } else if (result.id) {
-        router.push(`/client/goal/${result.id}`)
-      }
+      // Créer l'objectif
+      const result = await createRaceGoal(buildFormData())
+      if (result.error) { setError(result.error) }
+      else if (result.id) { router.push(`/client/goal/${result.id}`) }
     })
   }
 
@@ -394,12 +428,38 @@ export function WizardForm() {
             toggleTerrain={toggleTerrain}
           />
         )}
-        {step === 8 && (
+        {step === SUMMARY_STEP && (
           <StepSummary
             data={data}
             weeksUntilRace={weeksUntilRace()}
             formatTargetTime={formatTargetTime}
           />
+        )}
+        {step === SIGNUP_STEP && !isLoggedIn && (
+          <div>
+            <StepTitle>Crée ton compte</StepTitle>
+            <p className="text-sm text-[#888] mb-6">Pour recevoir ton plan personnalisé, crée ton compte en 30 secondes.</p>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="signup-fn" className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">Prénom</label>
+                  <input id="signup-fn" type="text" value={signupFirstName} onChange={(e) => setSignupFirstName(e.target.value)} required className="w-full px-3 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] text-white placeholder:text-[#555] text-sm" placeholder="Jean" />
+                </div>
+                <div>
+                  <label htmlFor="signup-ln" className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">Nom</label>
+                  <input id="signup-ln" type="text" value={signupLastName} onChange={(e) => setSignupLastName(e.target.value)} required className="w-full px-3 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] text-white placeholder:text-[#555] text-sm" placeholder="Dupont" />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="signup-email" className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">Email</label>
+                <input id="signup-email" type="email" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} required className="w-full px-3 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] text-white placeholder:text-[#555] text-sm" placeholder="jean@email.com" />
+              </div>
+              <div>
+                <label htmlFor="signup-pw" className="block text-xs font-medium text-[#888] mb-1.5 uppercase tracking-wide">Mot de passe</label>
+                <input id="signup-pw" type="password" value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} required minLength={6} className="w-full px-3 py-3 min-h-[44px] bg-[#1c1c1c] border border-[#2a2a2a] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4ff00] text-white placeholder:text-[#555] text-sm" placeholder="6 caractères minimum" />
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
@@ -425,15 +485,23 @@ export function WizardForm() {
             disabled={!canContinue()}
             className="flex-1 min-h-[48px] rounded-xl"
           >
-            Suivant
+            {step === SUMMARY_STEP && !isLoggedIn ? 'Continuer' : 'Suivant'}
           </Button>
-        ) : (
+        ) : isLoggedIn ? (
           <Button
-            onClick={handleSubmit}
+            onClick={handleSubmitLoggedIn}
             disabled={isPending}
             className="flex-1 min-h-[48px] rounded-xl"
           >
             {isPending ? 'Création en cours...' : 'Créer ma préparation'}
+          </Button>
+        ) : (
+          <Button
+            onClick={handleSubmitWithSignup}
+            disabled={isPending || !signupFirstName || !signupLastName || !signupEmail || !signupPassword}
+            className="flex-1 min-h-[48px] rounded-xl"
+          >
+            {isPending ? 'Création en cours...' : 'Créer mon compte et ma préparation'}
           </Button>
         )}
       </div>
