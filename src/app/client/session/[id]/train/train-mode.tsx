@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toggleSession } from '@/app/client/actions'
+import { SessionFeedbackModal } from '@/components/client/session-feedback-modal'
 
 interface TrainExercise {
   id: string
@@ -56,6 +57,8 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showInfo, setShowInfo] = useState(false)
   const [finishing, setFinishing] = useState(false)
+  // Afficher la modal feedback après avoir terminé la séance
+  const [showFeedback, setShowFeedback] = useState(false)
   const router = useRouter()
 
   const [timerMode, setTimerMode] = useState<'idle' | 'stopwatch' | 'countdown'>('idle')
@@ -97,6 +100,23 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
 
   return (
     <div className="fixed inset-0 bg-[#0a0a0a] z-50 flex flex-col">
+      {/* Modal feedback post-séance — affiché après avoir cliqué Terminer */}
+      {showFeedback && (
+        <SessionFeedbackModal
+          sessionId={sessionId}
+          onClose={() => {
+            // L'utilisateur passe le feedback : rediriger quand même vers la séance
+            setShowFeedback(false)
+            router.push(`/client/session/${sessionId}`)
+          }}
+          onSubmitted={() => {
+            // Feedback envoyé : rediriger vers la page de la séance
+            setShowFeedback(false)
+            router.push(`/client/session/${sessionId}`)
+          }}
+        />
+      )}
+
       {/* Barre du haut */}
       <div className="flex items-center justify-between px-4 py-3 shrink-0">
         <Link
@@ -227,7 +247,13 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
           </button>
           {isLast ? (
             <button
-              onClick={async () => { setFinishing(true); await toggleSession(sessionId, true); router.push(`/client/session/${sessionId}`) }}
+              onClick={async () => {
+                // Marquer la séance comme terminée puis afficher le modal feedback
+                setFinishing(true)
+                await toggleSession(sessionId, true)
+                setFinishing(false)
+                setShowFeedback(true)
+              }}
               disabled={finishing}
               className="flex-1 py-3.5 min-h-[48px] rounded-xl text-sm font-bold bg-[#d4ff00] text-black hover:bg-[#c2ee00] transition-all disabled:opacity-50 active:scale-[0.97]"
             >

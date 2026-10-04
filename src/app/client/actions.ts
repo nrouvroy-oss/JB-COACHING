@@ -76,3 +76,37 @@ export async function submitFeedback(sessionExerciseId: string, clientId: string
   revalidatePath('/client')
   return {}
 }
+
+// Enregistrer le feedback post-séance (RPE, ressenti, complétion, données réelles)
+export async function submitSessionFeedback(
+  sessionId: string,
+  completion: string,
+  difficultyRpe: number | null,
+  feeling: string | null,
+  comment: string | null,
+  actualDuration: number | null,
+  actualDistance: number | null,
+  actualElevation: number | null,
+) {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Non connecté' }
+
+  const { error } = await supabase
+    .from('session_feedbacks')
+    .upsert({
+      session_id: sessionId,
+      client_id: user.id,
+      completion,
+      difficulty_rpe: difficultyRpe,
+      feeling,
+      comment,
+      actual_duration_minutes: actualDuration,
+      actual_distance_km: actualDistance,
+      actual_elevation_m: actualElevation,
+    }, { onConflict: 'session_id,client_id' })
+
+  if (error) return { error: 'Erreur' }
+  revalidatePath('/client')
+  return {}
+}
