@@ -56,11 +56,11 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
     <div>
       {/* Navigation entre les vues coach */}
       <div className="flex items-center justify-between mb-4">
-        <Link href={`/coach/clients/${clientId}/program`} className="text-sm text-orange-500 hover:text-orange-600 transition-colors">
+        <Link href={`/coach/clients/${clientId}/program`} className="text-sm text-[#888] hover:text-[#d4ff00] transition-colors min-h-[44px] flex items-center">
           ← Plan
         </Link>
-        <Link href="/coach" className="text-sm text-orange-500 hover:text-orange-600 transition-colors">
-          Tableau de bord →
+        <Link href={`/coach/clients/${clientId}`} className="text-sm text-[#888] hover:text-[#d4ff00] transition-colors min-h-[44px] flex items-center">
+          Fiche client
         </Link>
       </div>
       {/* Passe le nom complet construit depuis first_name/last_name, repli sur full_name */}
