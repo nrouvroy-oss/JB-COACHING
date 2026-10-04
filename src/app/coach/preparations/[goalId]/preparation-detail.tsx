@@ -4,7 +4,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { AthleteProfileCard } from '@/components/coach/athlete-profile-card'
-import { publishPreparation, completePreparation } from '../actions'
+import { useRouter } from 'next/navigation'
+import { publishPreparation, completePreparation, createPreparationPlan } from '../actions'
 import type { RaceGoalWithProfile, Program, SessionFeedback, RaceGoalStatus } from '@/lib/types'
 
 interface PreparationDetailProps {
@@ -63,8 +64,9 @@ function getInitials(goal: RaceGoalWithProfile): string {
 }
 
 export function PreparationDetail({ goal, program, feedbacks }: PreparationDetailProps) {
-  const [loading, setLoading] = useState<'publish' | 'complete' | null>(null)
+  const [loading, setLoading] = useState<'publish' | 'complete' | 'create' | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   const clientName = goal.client
     ? goal.client.first_name && goal.client.last_name
@@ -162,26 +164,29 @@ export function PreparationDetail({ goal, program, feedbacks }: PreparationDetai
                 </div>
               </div>
             ) : (
-              /* Aucun plan — message d'instruction */
+              /* Aucun plan — CTA création directe */
               <div className="p-5 text-center">
-                <div className="w-10 h-10 rounded-xl bg-[#242424] flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-5 h-5 text-[#555]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <div className="w-10 h-10 rounded-xl bg-[#d4ff00]/10 flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-5 h-5 text-[#d4ff00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </div>
-                <p className="text-sm font-medium text-[#888]">Aucun plan créé</p>
-                <p className="text-xs text-[#555] mt-1 leading-relaxed max-w-xs mx-auto">
-                  Crée un programme pour ce sportif depuis sa fiche client, puis indique l&apos;identifiant de cette préparation dans le champ <span className="text-[#888]">race_goal_id</span>.
-                </p>
-                <Link
-                  href={`/coach/clients/${goal.client_id}/program`}
-                  className="inline-flex items-center gap-1.5 mt-3 text-sm text-[#d4ff00] hover:text-white transition-colors font-medium min-h-[44px]"
+                <p className="text-sm font-medium text-white">Prêt à construire le plan ?</p>
+                <p className="text-xs text-[#666] mt-1">Le programme sera créé et lié automatiquement à cette préparation.</p>
+                <button
+                  onClick={async () => {
+                    setLoading('create')
+                    setError(null)
+                    const result = await createPreparationPlan(goal.id, goal.client_id, goal.race_name)
+                    setLoading(null)
+                    if (result.error) { setError(result.error); return }
+                    if (result.clientId) router.push(`/coach/clients/${result.clientId}/program`)
+                  }}
+                  disabled={loading !== null}
+                  className="mt-4 w-full min-h-[48px] bg-[#d4ff00] hover:bg-[#c8f200] text-black font-bold rounded-xl transition-colors disabled:opacity-50 text-sm active:scale-[0.97]"
                 >
-                  Aller à la fiche client
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                  </svg>
-                </Link>
+                  {loading === 'create' ? 'Création...' : 'Créer le plan'}
+                </button>
               </div>
             )}
           </div>

@@ -24,6 +24,41 @@ export async function publishPreparation(goalId: string) {
   return {}
 }
 
+// Créer le plan de préparation — crée un programme lié au race_goal et redirige
+export async function createPreparationPlan(goalId: string, clientId: string, raceName: string) {
+  const user = await requireCoach()
+  if (!user) return { error: 'Non autorisé' }
+
+  const supabase = await createServerClient()
+
+  // Archiver l'ancien programme actif du client s'il y en a un
+  await supabase
+    .from('programs')
+    .update({ status: 'completed' })
+    .eq('client_id', clientId)
+    .eq('status', 'active')
+
+  // Créer le programme lié au race_goal
+  const { data: program, error: progError } = await supabase
+    .from('programs')
+    .insert({
+      name: `Préparation — ${raceName}`,
+      client_id: clientId,
+      coach_id: user.id,
+      race_goal_id: goalId,
+      status: 'active',
+    })
+    .select('id')
+    .single()
+
+  if (progError || !program) return { error: 'Erreur lors de la création du plan' }
+
+  revalidatePath('/coach/preparations')
+  revalidatePath(`/coach/preparations/${goalId}`)
+  revalidatePath(`/coach/clients/${clientId}/program`)
+  return { programId: program.id, clientId }
+}
+
 // Terminer la préparation — passe le statut en 'completed' (la course est passée)
 export async function completePreparation(goalId: string) {
   const user = await requireCoach()
