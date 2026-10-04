@@ -80,37 +80,13 @@ export function CoachDashboardClient({
         </div>
       </div>
 
-      {/* Cartes statistiques */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Cartes statistiques — grille 2×2 */}
+      <div className="grid grid-cols-2 gap-3">
         <StatCard label="Clients" value={stats.clientCount} icon="clients" />
-        <StatCard label="Actifs" value={`${stats.activeThisWeek}/${stats.clientCount}`} icon="active" />
-        <StatCard label="Feedbacks" value={stats.recentFeedbackCount} icon="feedback" />
+        <StatCard label="Actifs semaine" value={`${stats.activeThisWeek}/${stats.clientCount}`} icon="active" />
+        <StatCard label="À traiter" value={stats.pendingPrepas} icon="pending" />
+        <StatCard label="Prépas en cours" value={stats.activePrepas} icon="prepas" />
       </div>
-
-      {/* Carte préparations */}
-      {(stats.pendingPrepas > 0 || stats.activePrepas > 0) && (
-        <Link
-          href="/coach/preparations"
-          className="flex items-center gap-3 bg-[#1c1c1c] border border-[#2a2a2a] rounded-xl p-4 hover:border-[#333] transition-all min-h-[56px]"
-        >
-          <div className="w-10 h-10 rounded-xl bg-[#d4ff00]/10 flex items-center justify-center shrink-0">
-            <svg className="w-5 h-5 text-[#d4ff00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white">Préparations</p>
-            <p className="text-xs text-[#888]">
-              {stats.pendingPrepas > 0 && <span className="text-amber-400">{stats.pendingPrepas} à traiter</span>}
-              {stats.pendingPrepas > 0 && stats.activePrepas > 0 && <span> · </span>}
-              {stats.activePrepas > 0 && <span>{stats.activePrepas} en cours</span>}
-            </p>
-          </div>
-          <svg className="w-4 h-4 text-[#555] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
-      )}
 
       {/* Raccourci dernier client actif → suivi */}
       {lastActiveClient && (
