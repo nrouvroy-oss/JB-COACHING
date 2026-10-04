@@ -42,6 +42,7 @@ export default async function CoachLayout({
           <Link href="/coach/clients" className="text-sm text-[#888] hover:text-[#d4ff00] py-3 transition-colors whitespace-nowrap min-h-[44px] flex items-center">Clients</Link>
           <Link href="/coach/exercises" className="text-sm text-[#888] hover:text-[#d4ff00] py-3 transition-colors whitespace-nowrap min-h-[44px] flex items-center">Exercices</Link>
           <Link href="/coach/workouts" className="text-sm text-[#888] hover:text-[#d4ff00] py-3 transition-colors whitespace-nowrap min-h-[44px] flex items-center">Programmes</Link>
+          <Link href="/coach/preparations" className="text-sm text-[#888] hover:text-[#d4ff00] py-3 transition-colors whitespace-nowrap min-h-[44px] flex items-center">Prépas</Link>
         </div>
       </nav>
       <main className="max-w-lg mx-auto p-3 sm:p-4 pb-6">
