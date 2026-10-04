@@ -131,25 +131,12 @@ export default async function CoachDashboard() {
     lastActiveClient = firstClient
   }
 
-  // ── 6. Préparations en cours ──
-  const { count: pendingPrepas } = await supabase
-    .from('race_goals')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'pending')
-
-  const { count: activePrepas } = await supabase
-    .from('race_goals')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'active')
-
   return (
     <CoachDashboardClient
       stats={{
         clientCount,
         activeThisWeek,
         recentFeedbackCount: recentFeedbackCount ?? 0,
-        pendingPrepas: pendingPrepas ?? 0,
-        activePrepas: activePrepas ?? 0,
       }}
       recentFeedbacks={recentFeedbacks ?? []}
       lastActiveClient={lastActiveClient}

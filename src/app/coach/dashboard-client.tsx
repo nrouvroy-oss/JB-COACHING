@@ -16,8 +16,6 @@ interface DashboardStats {
   clientCount: number
   activeThisWeek: number
   recentFeedbackCount: number
-  pendingPrepas: number
-  activePrepas: number
 }
 
 interface FeedbackEntry {
@@ -80,12 +78,11 @@ export function CoachDashboardClient({
         </div>
       </div>
 
-      {/* Cartes statistiques — grille 2×2 */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Cartes statistiques */}
+      <div className="grid grid-cols-3 gap-3">
         <StatCard label="Clients" value={stats.clientCount} icon="clients" />
-        <StatCard label="Actifs semaine" value={`${stats.activeThisWeek}/${stats.clientCount}`} icon="active" />
-        <StatCard label="À traiter" value={stats.pendingPrepas} icon="pending" />
-        <StatCard label="Prépas en cours" value={stats.activePrepas} icon="prepas" />
+        <StatCard label="Actifs" value={`${stats.activeThisWeek}/${stats.clientCount}`} icon="active" />
+        <StatCard label="Feedbacks" value={stats.recentFeedbackCount} icon="feedback" />
       </div>
 
       {/* Raccourci dernier client actif → suivi */}
