@@ -1,6 +1,6 @@
 'use client'
 
-// Composant client — liste et création des programmes (Muscu 3, TRX, Vélo...)
+// Liste des programmes réutilisables (Muscu 3, TRX, Vélo...)
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -34,7 +34,6 @@ export function WorkoutsClient({ workouts }: WorkoutsClientProps) {
     if (!result.error && result.id) {
       setName('')
       setShowModal(false)
-      // Aller directement sur la page du programme pour ajouter des exercices
       router.push(`/coach/workouts/${result.id}`)
     }
   }
@@ -46,46 +45,58 @@ export function WorkoutsClient({ workouts }: WorkoutsClientProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Programmes</h1>
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="text-xl font-bold text-white" style={{ fontFamily: 'Bricolage Grotesque' }}>Programmes</h1>
         <Button size="sm" onClick={() => setShowModal(true)}>+ Créer</Button>
       </div>
-
-      <p className="text-sm text-[#888]">
-        Crée tes programmes (Muscu 3, TRX, Vélo...) puis assigne-les aux séances de tes clients.
+      <p className="text-sm text-[#888] mb-4">
+        Blocs d&apos;exercices réutilisables à assigner aux séances.
       </p>
 
       {workouts.length === 0 ? (
-        <div className="bg-[#1c1c1c] rounded-xl border border-[#2a2a2a] p-8 text-center">
-          <p className="text-[#888] text-sm mb-4">Aucun programme pour le moment.</p>
+        <div className="bg-[#1c1c1c] rounded-2xl border border-[#2a2a2a] p-8 text-center">
+          <div className="w-12 h-12 rounded-full bg-[#1a1a1a] flex items-center justify-center mx-auto mb-3">
+            <svg className="w-6 h-6 text-[#333]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+            </svg>
+          </div>
+          <p className="text-[#888] text-sm mb-4">Aucun programme pour le moment</p>
           <Button onClick={() => setShowModal(true)}>+ Créer mon premier programme</Button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {workouts.map((w) => (
-            <div key={w.id} className="bg-[#1c1c1c] rounded-xl border border-[#2a2a2a] hover:border-[#3a3a3a] p-4 transition-all duration-200">
-              <div className="flex items-center justify-between gap-3">
+            <div key={w.id} className="bg-[#1c1c1c] rounded-xl border border-[#2a2a2a] hover:border-[#333] transition-all overflow-hidden">
+              <Link href={`/coach/workouts/${w.id}`} className="flex items-center gap-3 p-4">
+                <div className="w-10 h-10 rounded-xl bg-[#d4ff00]/10 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-[#d4ff00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+                  </svg>
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-white truncate">{w.name}</p>
-                  <p className="text-xs text-[#888] mt-0.5">
+                  <p className="font-bold text-white text-sm truncate">{w.name}</p>
+                  <p className="text-xs text-[#888]">
                     {w.workout_exercises.length} exercice{w.workout_exercises.length !== 1 ? 's' : ''}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Link
-                    href={`/coach/workouts/${w.id}`}
-                    className="text-sm text-[#d4ff00] hover:text-[#c2ee00] font-medium transition-colors"
-                  >
-                    Modifier
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(w.id, w.name)}
-                    className="text-sm text-red-400 hover:text-red-300 transition-colors"
-                  >
-                    Supprimer
-                  </button>
-                </div>
+                <svg className="w-4 h-4 text-[#555] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+              <div className="flex border-t border-[#242424]">
+                <Link
+                  href={`/coach/workouts/${w.id}`}
+                  className="flex-1 text-center py-2.5 min-h-[44px] flex items-center justify-center text-xs font-medium text-[#d4ff00] hover:bg-[#242424] transition-colors"
+                >
+                  Modifier
+                </Link>
+                <button
+                  onClick={() => handleDelete(w.id, w.name)}
+                  className="flex-1 text-center py-2.5 min-h-[44px] flex items-center justify-center text-xs font-medium text-[#555] hover:text-red-400 hover:bg-[#242424] transition-colors border-l border-[#242424]"
+                >
+                  Supprimer
+                </button>
               </div>
             </div>
           ))}
@@ -100,7 +111,7 @@ export function WorkoutsClient({ workouts }: WorkoutsClientProps) {
               id="workout-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Muscu 3, TRX, Course..."
+              placeholder="Ex: Renforcement, TRX, Course..."
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
             <div className="flex gap-2">
