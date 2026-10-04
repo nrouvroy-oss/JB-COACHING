@@ -1,4 +1,4 @@
-// Layout de l'espace client — navigation avec onglets Programme / Mon parcours
+// Layout de l'espace client — navigation avec onglets Programme / Mon objectif / Mon parcours
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
@@ -15,11 +15,25 @@ export default async function ClientLayout({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('first_name, full_name')
-    .eq('id', user.id)
-    .single()
+  // Récupérer le prénom et vérifier si le client a un objectif actif en parallèle
+  const [profileResult, goalResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('first_name, full_name')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('race_goals')
+      .select('id')
+      .eq('client_id', user.id)
+      .in('status', ['draft', 'pending', 'active'])
+      .limit(1)
+      .single(),
+  ])
+
+  const profile = profileResult.data
+  // hasGoal = true si le client a au moins un objectif en cours (draft/pending/active)
+  const hasGoal = !!goalResult.data
 
   return (
     <div className="min-h-screen bg-[#1c1c1c]">
@@ -44,8 +58,8 @@ export default async function ClientLayout({
         </div>
       </nav>
 
-      {/* Onglets de navigation */}
-      <ClientNav />
+      {/* Onglets de navigation — "Mon objectif" apparaît si hasGoal */}
+      <ClientNav hasGoal={hasGoal} />
 
       <main className="max-w-lg mx-auto p-4">
         {children}
