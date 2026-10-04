@@ -1,6 +1,6 @@
 'use client'
 
-// Mode entraînement : un exercice à la fois, vidéo en boucle, chronomètre intégré
+// Mode entraînement : plein écran, un exercice à la fois, vidéo en boucle, chrono intégré
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -11,12 +11,7 @@ interface TrainExercise {
   coach_notes: string
   sets?: string
   reps?: string
-  exercise: {
-    id: string
-    name: string
-    video_url: string
-    description: string
-  }
+  exercise: { id: string; name: string; video_url: string; description: string }
 }
 
 interface TrainModeProps {
@@ -28,15 +23,13 @@ interface TrainModeProps {
   exercises: TrainExercise[]
 }
 
-// Presets de minuteur (en secondes)
 const TIMER_PRESETS = [
   { label: '30s', seconds: 30 },
-  { label: '1min', seconds: 60 },
-  { label: '2min', seconds: 120 },
-  { label: '3min', seconds: 180 },
+  { label: '1\'', seconds: 60 },
+  { label: '2\'', seconds: 120 },
+  { label: '3\'', seconds: 180 },
 ]
 
-// Bip sonore (3 bips courts)
 function playBeep() {
   try {
     const ctx = new AudioContext()
@@ -50,12 +43,9 @@ function playBeep() {
       osc.start(ctx.currentTime + i * 0.25)
       osc.stop(ctx.currentTime + i * 0.25 + 0.15)
     }
-  } catch {
-    // Pas de son disponible
-  }
+  } catch { /* Pas de son */ }
 }
 
-// Format mm:ss
 function formatTime(s: number) {
   const min = Math.floor(s / 60)
   const sec = s % 60
@@ -68,7 +58,6 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
   const [finishing, setFinishing] = useState(false)
   const router = useRouter()
 
-  // Timer state
   const [timerMode, setTimerMode] = useState<'idle' | 'stopwatch' | 'countdown'>('idle')
   const [timerSeconds, setTimerSeconds] = useState(0)
   const [timerRunning, setTimerRunning] = useState(false)
@@ -78,93 +67,54 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
   const current = exercises[currentIndex]
   const isFirst = currentIndex === 0
   const isLast = currentIndex === total - 1
+  const progressPercent = ((currentIndex + 1) / total) * 100
 
-  // Stopper le timer
   const stopTimer = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current)
     setTimerRunning(false)
   }, [])
 
-  // Reset complet du timer
-  function resetTimer() {
-    stopTimer()
-    setTimerMode('idle')
-    setTimerSeconds(0)
-  }
+  function resetTimer() { stopTimer(); setTimerMode('idle'); setTimerSeconds(0) }
+  function startStopwatch() { stopTimer(); setTimerMode('stopwatch'); setTimerSeconds(0); setTimerRunning(true) }
+  function startCountdown(seconds: number) { stopTimer(); setTimerMode('countdown'); setTimerSeconds(seconds); setTimerRunning(true) }
 
-  // Lancer le chronomètre (compte en montant)
-  function startStopwatch() {
-    stopTimer()
-    setTimerMode('stopwatch')
-    setTimerSeconds(0)
-    setTimerRunning(true)
-  }
-
-  // Lancer un minuteur (compte à rebours)
-  function startCountdown(seconds: number) {
-    stopTimer()
-    setTimerMode('countdown')
-    setTimerSeconds(seconds)
-    setTimerRunning(true)
-  }
-
-  // Tick du timer
   useEffect(() => {
     if (!timerRunning) return
     intervalRef.current = setInterval(() => {
       setTimerSeconds(prev => {
         if (timerMode === 'countdown') {
-          if (prev <= 1) {
-            playBeep()
-            stopTimer()
-            return 0
-          }
+          if (prev <= 1) { playBeep(); stopTimer(); return 0 }
           return prev - 1
         }
-        // Chronomètre : compte en montant
         return prev + 1
       })
     }, 1000)
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [timerRunning, timerMode, stopTimer])
 
-  // Reset le timer quand on change d'exercice
-  useEffect(() => {
-    resetTimer()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex])
-
-  function goNext() {
-    if (!isLast) setCurrentIndex(prev => prev + 1)
-  }
-
-  function goPrev() {
-    if (!isFirst) setCurrentIndex(prev => prev - 1)
-  }
+  useEffect(() => { resetTimer() }, [currentIndex])
 
   return (
-    <div className="fixed inset-0 bg-[#141414] z-50 flex flex-col">
-      {/* Barre du haut — quitter + progression */}
+    <div className="fixed inset-0 bg-[#0a0a0a] z-50 flex flex-col">
+      {/* Barre du haut */}
       <div className="flex items-center justify-between px-4 py-3 shrink-0">
         <Link
           href={`/client/session/${sessionId}`}
-          className="text-sm text-[#888] hover:text-white transition-colors"
+          className="text-sm text-[#888] hover:text-white transition-colors min-h-[44px] flex items-center gap-1"
         >
-          ← Quitter
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Quitter
         </Link>
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1">
-            {exercises.map((_, i) => (
-              <div
-                key={i}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  i === currentIndex ? 'bg-[#d4ff00]' : i < currentIndex ? 'bg-[#d4ff00]/40' : 'bg-[#333]'
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-xs text-[#888] ml-1">{currentIndex + 1}/{total}</span>
-        </div>
+        <p className="text-xs text-[#888] truncate max-w-[150px] text-center">{sessionName}</p>
+        <span className="text-xs text-[#888] tabular-nums min-w-[40px] text-right">{currentIndex + 1}/{total}</span>
+      </div>
+
+      {/* Barre de progression */}
+      <div className="w-full h-0.5 bg-[#1a1a1a]">
+        <div className="h-full bg-[#d4ff00] transition-all duration-300" style={{ width: `${progressPercent}%` }} />
       </div>
 
       {/* Zone vidéo */}
@@ -174,153 +124,118 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
             <video
               key={current.exercise.id}
               src={current.exercise.video_url}
-              autoPlay
-              loop
-              muted
-              playsInline
+              autoPlay loop muted playsInline
               className="w-full max-h-full rounded-2xl object-contain"
             />
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-[#555] text-sm">Pas de vidéo pour cet exercice</p>
+            <div className="w-24 h-24 rounded-full bg-[#1a1a1a] flex items-center justify-center">
+              <svg className="w-10 h-10 text-[#333]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+              </svg>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Bas de page : exercice + chrono + navigation */}
-      <div className="shrink-0 px-4 pb-6 pt-3">
-        {/* Nom de l'exercice + séries/reps */}
-        <h2 className="text-xl font-bold text-white text-center">{current.exercise.name}</h2>
-        {(current.sets || current.reps) && (
-          <p className="text-lg font-bold text-[#d4ff00] text-center mt-1">
-            {current.sets && current.reps ? `${current.sets} x ${current.reps}` : current.sets || current.reps}
-          </p>
-        )}
-        {current.coach_notes && (
-          <p className="text-sm text-[#888] text-center mt-1">{current.coach_notes}</p>
-        )}
+      {/* Panneau bas */}
+      <div className="shrink-0 bg-[#0a0a0a] px-4 pb-8 pt-4">
+        {/* Exercice */}
+        <div className="text-center mb-4">
+          <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: 'Bricolage Grotesque' }}>
+            {current.exercise.name}
+          </h2>
+          {(current.sets || current.reps) && (
+            <p className="text-lg font-bold text-[#d4ff00] mt-1 tabular-nums">
+              {current.sets && current.reps ? `${current.sets} × ${current.reps}` : current.sets || current.reps}
+            </p>
+          )}
+          {current.coach_notes && <p className="text-sm text-[#888] mt-1">{current.coach_notes}</p>}
+        </div>
 
-        {/* Chronomètre / Minuteur */}
-        <div className="mt-3">
+        {/* Timer */}
+        <div className="mb-4">
           {timerMode === 'idle' ? (
-            // Boutons pour lancer un timer
-            <div className="flex items-center justify-center gap-2 flex-wrap">
-              <button
-                onClick={startStopwatch}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#242424] text-white hover:bg-[#2a2a2a] transition-colors"
-              >
-                ⏱ Chrono
+            <div className="flex items-center justify-center gap-2">
+              <button onClick={startStopwatch} className="px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold bg-[#1a1a1a] text-white hover:bg-[#242424] transition-colors flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Chrono
               </button>
               {TIMER_PRESETS.map(p => (
-                <button
-                  key={p.seconds}
-                  onClick={() => startCountdown(p.seconds)}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#242424] text-[#d4ff00] hover:bg-[#2a2a2a] transition-colors"
-                >
+                <button key={p.seconds} onClick={() => startCountdown(p.seconds)} className="px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold bg-[#1a1a1a] text-[#d4ff00] hover:bg-[#242424] transition-colors">
                   {p.label}
                 </button>
               ))}
             </div>
           ) : (
-            // Timer actif
             <div className="flex items-center justify-center gap-4">
-              <span className={`text-3xl font-bold tabular-nums ${
+              <span className={`text-4xl font-extrabold tabular-nums ${
                 timerMode === 'countdown' && timerSeconds <= 5 && timerSeconds > 0
-                  ? 'text-red-400'
-                  : timerMode === 'countdown' ? 'text-[#d4ff00]' : 'text-white'
-              }`}>
+                  ? 'text-red-400' : timerMode === 'countdown' ? 'text-[#d4ff00]' : 'text-white'
+              }`} style={{ fontFamily: 'Bricolage Grotesque' }}>
                 {formatTime(timerSeconds)}
               </span>
               <div className="flex gap-2">
-                {timerRunning ? (
-                  <button
-                    onClick={stopTimer}
-                    className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#242424] text-white hover:bg-[#2a2a2a] transition-colors"
-                  >
-                    Pause
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setTimerRunning(true)}
-                    className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#242424] text-[#d4ff00] hover:bg-[#2a2a2a] transition-colors"
-                  >
-                    Reprendre
-                  </button>
-                )}
                 <button
-                  onClick={resetTimer}
-                  className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#242424] text-[#888] hover:bg-[#2a2a2a] transition-colors"
+                  onClick={() => timerRunning ? stopTimer() : setTimerRunning(true)}
+                  className="w-11 h-11 rounded-xl bg-[#1a1a1a] text-white hover:bg-[#242424] transition-colors flex items-center justify-center"
+                  aria-label={timerRunning ? 'Pause' : 'Reprendre'}
                 >
-                  ✕
+                  {timerRunning ? (
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5.14v14.72a1 1 0 001.5.86l11.14-7.36a1 1 0 000-1.72L9.5 4.28a1 1 0 00-1.5.86z" /></svg>
+                  )}
+                </button>
+                <button onClick={resetTimer} className="w-11 h-11 rounded-xl bg-[#1a1a1a] text-[#888] hover:bg-[#242424] transition-colors flex items-center justify-center" aria-label="Réinitialiser">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Instructions dépliables */}
+        {/* Instructions */}
         {(details || recovery) && (
-          <button
-            onClick={() => setShowInfo(!showInfo)}
-            className="text-xs text-[#d4ff00] mx-auto block mt-3"
-          >
-            {showInfo ? 'Masquer les instructions' : 'Voir les instructions'}
-          </button>
-        )}
-        {showInfo && (
-          <div className="bg-[#1c1c1c] rounded-xl p-3 mt-2 space-y-2">
-            {workoutName && (
-              <span className="inline-block bg-[#d4ff00]/10 text-[#d4ff00] text-xs px-2 py-0.5 rounded-full font-medium">
-                {workoutName}
-              </span>
-            )}
-            {details && (
-              <div>
-                <p className="text-xs text-[#888] uppercase tracking-wide">Description</p>
-                <p className="text-sm text-white whitespace-pre-line mt-0.5">{details}</p>
+          <>
+            <button onClick={() => setShowInfo(!showInfo)} className="text-xs text-[#d4ff00] mx-auto block mb-3 min-h-[44px] flex items-center justify-center">
+              {showInfo ? 'Masquer les instructions' : 'Voir les instructions'}
+            </button>
+            {showInfo && (
+              <div className="bg-[#1a1a1a] rounded-xl p-4 mb-4 space-y-2">
+                {workoutName && <span className="inline-block bg-[#d4ff00]/10 text-[#d4ff00] text-xs px-2 py-0.5 rounded-full font-medium">{workoutName}</span>}
+                {details && <div><p className="text-xs text-[#888] uppercase tracking-wide">Description</p><p className="text-sm text-white whitespace-pre-line mt-0.5">{details}</p></div>}
+                {recovery && <div><p className="text-xs text-[#888] uppercase tracking-wide">Récupération</p><p className="text-sm text-[#d4ff00] mt-0.5">{recovery}</p></div>}
               </div>
             )}
-            {recovery && (
-              <div>
-                <p className="text-xs text-[#888] uppercase tracking-wide">Récupération</p>
-                <p className="text-sm text-[#d4ff00] mt-0.5">{recovery}</p>
-              </div>
-            )}
-          </div>
+          </>
         )}
 
         {/* Navigation */}
-        <div className="flex gap-3 mt-4">
+        <div className="flex gap-3">
           <button
-            onClick={goPrev}
+            onClick={() => { if (!isFirst) setCurrentIndex(prev => prev - 1) }}
             disabled={isFirst}
-            className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-colors ${
-              isFirst
-                ? 'bg-[#1c1c1c] text-[#555] cursor-not-allowed'
-                : 'bg-[#242424] text-white hover:bg-[#2a2a2a]'
+            className={`flex-1 py-3.5 min-h-[48px] rounded-xl text-sm font-semibold transition-all ${
+              isFirst ? 'bg-[#1a1a1a] text-[#333] cursor-not-allowed' : 'bg-[#1a1a1a] text-white hover:bg-[#242424] active:scale-[0.97]'
             }`}
           >
-            ← Précédent
+            Précédent
           </button>
           {isLast ? (
             <button
-              onClick={async () => {
-                setFinishing(true)
-                await toggleSession(sessionId, true)
-                router.push(`/client/session/${sessionId}`)
-              }}
+              onClick={async () => { setFinishing(true); await toggleSession(sessionId, true); router.push(`/client/session/${sessionId}`) }}
               disabled={finishing}
-              className="flex-1 py-3 rounded-xl text-sm font-bold bg-[#d4ff00] text-black hover:bg-[#c2ee00] transition-colors disabled:opacity-50"
+              className="flex-1 py-3.5 min-h-[48px] rounded-xl text-sm font-bold bg-[#d4ff00] text-black hover:bg-[#c2ee00] transition-all disabled:opacity-50 active:scale-[0.97]"
             >
-              {finishing ? 'Enregistrement...' : 'Terminer ✓'}
+              {finishing ? 'Enregistrement...' : 'Terminer'}
             </button>
           ) : (
-            <button
-              onClick={goNext}
-              className="flex-1 py-3 rounded-xl text-sm font-bold bg-[#d4ff00] text-black hover:bg-[#c2ee00] transition-colors"
-            >
-              Suivant →
+            <button onClick={() => setCurrentIndex(prev => prev + 1)} className="flex-1 py-3.5 min-h-[48px] rounded-xl text-sm font-bold bg-[#d4ff00] text-black hover:bg-[#c2ee00] transition-all active:scale-[0.97]">
+              Suivant
             </button>
           )}
         </div>

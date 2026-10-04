@@ -37,13 +37,18 @@ export function ExerciseItem({ sessionExercise, clientId }: ExerciseItemProps) {
         {/* Case à cocher ronde */}
         <button
           onClick={handleToggle}
-          className={`mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+          className={`mt-0.5 w-7 h-7 min-w-[44px] min-h-[44px] rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
             isCompleted
-              ? 'bg-green-500 border-green-500 text-white'
+              ? 'bg-emerald-500 border-emerald-500'
               : 'border-[#444] hover:border-[#d4ff00]'
           }`}
+          aria-label={isCompleted ? 'Marquer comme non fait' : 'Marquer comme fait'}
         >
-          {isCompleted && '✓'}
+          {isCompleted && (
+            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          )}
         </button>
 
         <div className="flex-1">
@@ -61,7 +66,7 @@ export function ExerciseItem({ sessionExercise, clientId }: ExerciseItemProps) {
           {/* Notes du coach si présentes */}
           {sessionExercise.coach_notes && (
             <p className="text-sm text-[#d4ff00] mt-1">
-              💡 {sessionExercise.coach_notes}
+              {sessionExercise.coach_notes}
             </p>
           )}
 
