@@ -1,6 +1,6 @@
 'use client'
 
-// Vue interactive du programme : navigateur de semaines + progression de la semaine
+// Vue programme client — navigation par semaine + séances avec progression
 import { useState } from 'react'
 import { WeekNavigator } from '@/components/client/week-navigator'
 import { SessionCard } from '@/components/client/session-card'
@@ -28,28 +28,25 @@ export function ClientProgramView({ program, firstName }: ClientProgramViewProps
     ? [...currentWeek.sessions].sort((a, b) => a.order_index - b.order_index)
     : []
 
-  // Progression de la semaine : nombre de séances complétées
+  // Progression de la semaine
   const totalSessions = sortedSessions.length
   const completedSessions = sortedSessions.filter(isSessionCompleted).length
   const weekPercent = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0
 
+  // Volume cible de la semaine si défini
+  const weekTargets = currentWeek as any
+
   return (
     <div>
-      {/* Bannière motivationnelle */}
-      <div className="relative h-32 rounded-2xl overflow-hidden mb-6">
-        <img
-          src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-        <div className="relative h-full flex flex-col justify-end p-4">
-          <h1 className="text-xl font-bold text-white">Hello {firstName}</h1>
-          <p className="text-sm text-[#d4ff00]">Ton programme t&apos;attend</p>
-          <p className="text-xs text-[#888] mt-0.5">{program.name}</p>
-        </div>
+      {/* En-tête compact */}
+      <div className="mb-5">
+        <p className="text-sm text-[#888]">Hello {firstName}</p>
+        <h1 className="text-xl font-bold text-white" style={{ fontFamily: 'Bricolage Grotesque' }}>
+          {program.name}
+        </h1>
       </div>
 
+      {/* Sélecteur de semaine */}
       <WeekNavigator
         weekNumbers={sortedWeeks.map(w => w.week_number)}
         currentWeek={currentWeekNum}
@@ -58,20 +55,35 @@ export function ClientProgramView({ program, firstName }: ClientProgramViewProps
 
       {/* Progression de la semaine */}
       {totalSessions > 0 && (
-        <div className="mt-4 flex items-center gap-3">
-          <ProgressBar percent={weekPercent} className="flex-1" />
-          <span className="text-xs font-medium text-[#888] shrink-0">
-            {completedSessions}/{totalSessions} séance{totalSessions > 1 ? 's' : ''}
-          </span>
+        <div className="mt-4 bg-[#1c1c1c] rounded-xl border border-[#2a2a2a] p-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-bold text-white">Semaine {currentWeekNum}</span>
+            <span className="text-sm font-bold text-[#d4ff00] tabular-nums">{completedSessions}/{totalSessions}</span>
+          </div>
+          <ProgressBar percent={weekPercent} />
+          {/* Volume cible si défini */}
+          {(weekTargets?.target_distance_km || weekTargets?.target_duration_minutes || weekTargets?.target_elevation_gain_m) && (
+            <div className="flex flex-wrap gap-3 mt-2 pt-2 border-t border-[#242424]">
+              {weekTargets.target_distance_km && (
+                <span className="text-xs text-[#888]">{weekTargets.target_distance_km} km</span>
+              )}
+              {weekTargets.target_duration_minutes && (
+                <span className="text-xs text-[#888]">
+                  {Math.floor(weekTargets.target_duration_minutes / 60)}h{String(weekTargets.target_duration_minutes % 60).padStart(2, '0')}
+                </span>
+              )}
+              {weekTargets.target_elevation_gain_m && (
+                <span className="text-xs text-[#888]">{weekTargets.target_elevation_gain_m}m D+</span>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {/* Liste des séances */}
-      <div className="mt-3 space-y-3">
-        {sortedSessions.map((session, index) => {
+      <div className="mt-4 space-y-3">
+        {sortedSessions.map((session) => {
           const done = isSessionCompleted(session)
-
-          // Nom du workout
           const workoutData = (session as any).workout
           const workoutName = Array.isArray(workoutData) ? workoutData[0]?.name : workoutData?.name
 
@@ -83,12 +95,18 @@ export function ClientProgramView({ program, firstName }: ClientProgramViewProps
               dayOfWeek={session.day_of_week}
               workoutName={workoutName}
               completed={done}
+              sessionType={(session as any).session_type}
+              durationMinutes={(session as any).duration_minutes}
+              elevationGainM={(session as any).elevation_gain_m}
+              objective={(session as any).objective}
             />
           )
         })}
 
         {totalSessions === 0 && (
-          <p className="text-[#888] text-center py-8">Pas de séance cette semaine.</p>
+          <div className="bg-[#1c1c1c] rounded-xl border border-[#2a2a2a] p-8 text-center">
+            <p className="text-[#888]">Pas de séance cette semaine.</p>
+          </div>
         )}
       </div>
     </div>
