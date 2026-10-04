@@ -30,8 +30,7 @@ export async function middleware(request: NextRequest) {
   // Pages toujours accessibles sans auth
   if (
     request.nextUrl.pathname.startsWith('/auth') ||
-    request.nextUrl.pathname.startsWith('/signup') ||
-    request.nextUrl.pathname.startsWith('/client/goal/new')
+    request.nextUrl.pathname.startsWith('/signup')
   ) {
     return response
   }
@@ -56,8 +55,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Coach qui tente d'accéder à l'espace client → rediriger vers son espace
-    // Exception : /client/goal/new est accessible à tous (wizard sans auth)
-    if (profile?.role === 'coach' && request.nextUrl.pathname.startsWith('/client') && !request.nextUrl.pathname.startsWith('/client/goal/new')) {
+    if (profile?.role === 'coach' && request.nextUrl.pathname.startsWith('/client')) {
       return NextResponse.redirect(new URL('/coach', request.url))
     }
 
