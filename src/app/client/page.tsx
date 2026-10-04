@@ -1,5 +1,6 @@
 // Page principale de l'espace client — charge le programme actif du client
 import { createServerClient } from '@/lib/supabase/server'
+import Link from 'next/link'
 import { ClientProgramView } from './program-view'
 
 export default async function ClientProgramPage() {
@@ -41,6 +42,15 @@ export default async function ClientProgramPage() {
     .eq('status', 'active')
     .single()
 
+  // Vérifier si le client a déjà un objectif course
+  const { data: existingGoal } = await supabase
+    .from('race_goals')
+    .select('id, status')
+    .eq('client_id', user.id)
+    .in('status', ['draft', 'pending', 'active'])
+    .limit(1)
+    .single()
+
   if (!program) {
     return (
       <div className="text-center py-12">
@@ -58,6 +68,24 @@ export default async function ClientProgramPage() {
         </div>
         <p className="text-[#888]">Aucun plan pour le moment.</p>
         <p className="text-sm text-[#777] mt-2">Ton coach te préparera bientôt un plan !</p>
+
+        {/* CTA objectif trail si pas d'objectif existant */}
+        {!existingGoal && (
+          <Link
+            href="/client/goal/new"
+            className="inline-flex items-center justify-center mt-6 px-6 py-3 min-h-[48px] bg-[#d4ff00] text-black font-bold rounded-xl hover:bg-[#c2ee00] transition-colors active:scale-[0.97]"
+          >
+            Préparer un trail
+          </Link>
+        )}
+        {existingGoal && (
+          <Link
+            href={`/client/goal/${existingGoal.id}`}
+            className="inline-flex items-center justify-center mt-6 px-6 py-3 min-h-[48px] border border-[#d4ff00]/30 text-[#d4ff00] font-bold rounded-xl hover:bg-[#d4ff00]/10 transition-colors"
+          >
+            Voir mon objectif
+          </Link>
+        )}
       </div>
     )
   }
