@@ -14,6 +14,7 @@ interface SessionStats {
   completedExercises: number
   completedAt: string | null
   feedbacks: { exerciseName: string; feedback: string; date: string | null }[]
+  isDone: boolean
 }
 
 function getSessionStats(session: any): SessionStats {
@@ -40,14 +41,24 @@ function getSessionStats(session: any): SessionStats {
     }
   }
 
+  // Utiliser session_logs si la séance est marquée terminée (mode entraînement)
+  const isDoneViaSessionLog = session._isDone === true
+  const sessionLogDate = session._completedAt ?? null
+
+  // Si la séance est marquée terminée via session_logs mais aucun exercise_log
+  if (isDoneViaSessionLog && completed === 0) {
+    latestDate = sessionLogDate
+  }
+
   return {
     name: session.name,
     dayOfWeek: session.day_of_week ?? '',
     totalExercises: total,
     completedExercises: completed,
-    completedAt: latestDate,
+    completedAt: isDoneViaSessionLog ? (sessionLogDate ?? latestDate) : latestDate,
     feedbacks,
-  }
+    isDone: isDoneViaSessionLog || (total > 0 && completed === total),
+  } as SessionStats
 }
 
 function formatDate(dateStr: string | null): string {
@@ -70,7 +81,7 @@ export function TrackingView({ weeks, clientName }: TrackingViewProps) {
       .map((s) => {
         const stats = getSessionStats(s)
         totalSessions++
-        if (stats.totalExercises > 0 && stats.completedExercises === stats.totalExercises) completedSessions++
+        if (stats.isDone) completedSessions++
         totalFeedbacks += stats.feedbacks.length
         for (const fb of stats.feedbacks) {
           allFeedbacks.push({ ...fb, clientName, sessionName: stats.name })
@@ -152,7 +163,7 @@ export function TrackingView({ weeks, clientName }: TrackingViewProps) {
                 {/* Séances de la semaine */}
                 <div className="grid gap-1.5 mt-3">
                   {week.sessions.map((session, i) => {
-                    const isDone = session.totalExercises > 0 && session.completedExercises === session.totalExercises
+                    const isDone = session.isDone
                     return (
                       <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isDone ? 'bg-emerald-500/10' : 'bg-[#242424]'}`}>
                         {isDone ? (

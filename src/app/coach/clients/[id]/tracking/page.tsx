@@ -17,7 +17,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
 
   if (!client) redirect('/coach')
 
-  // Récupérer le programme actif avec tous les logs d'exercices
+  // Récupérer le programme actif avec session_logs + exercise_logs
   const { data: program } = await supabase
     .from('programs')
     .select(`
@@ -26,6 +26,7 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
         *,
         sessions(
           *,
+          session_log:session_logs(*),
           session_exercises(
             *,
             exercise:exercises(*),
@@ -41,15 +42,28 @@ export default async function TrackingPage({ params }: { params: Promise<{ id: s
   // Reformater les logs pour ne garder que ceux du client concerné
   const weeks = program?.weeks.map((week: any) => ({
     ...week,
-    sessions: week.sessions.map((session: any) => ({
-      ...session,
-      session_exercises: session.session_exercises.map((se: any) => ({
-        ...se,
-        exercise_log: Array.isArray(se.exercise_log)
-          ? se.exercise_log.find((l: any) => l.client_id === clientId) ?? null
-          : se.exercise_log,
-      })),
-    })),
+    sessions: week.sessions.map((session: any) => {
+      // Vérifier si la séance est marquée terminée via session_logs
+      const sessionLogs = session.session_log
+      const isSessionDone = Array.isArray(sessionLogs)
+        ? sessionLogs.some((l: any) => l.client_id === clientId && l.completed)
+        : sessionLogs?.client_id === clientId && sessionLogs?.completed
+      const sessionCompletedAt = Array.isArray(sessionLogs)
+        ? sessionLogs.find((l: any) => l.client_id === clientId && l.completed)?.completed_at ?? null
+        : (sessionLogs?.client_id === clientId && sessionLogs?.completed) ? sessionLogs.completed_at : null
+
+      return {
+        ...session,
+        _isDone: isSessionDone,
+        _completedAt: sessionCompletedAt,
+        session_exercises: session.session_exercises.map((se: any) => ({
+          ...se,
+          exercise_log: Array.isArray(se.exercise_log)
+            ? se.exercise_log.find((l: any) => l.client_id === clientId) ?? null
+            : se.exercise_log,
+        })),
+      }
+    }),
   })) ?? []
 
   return (

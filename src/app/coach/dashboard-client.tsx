@@ -85,10 +85,10 @@ export function CoachDashboardClient({
         <StatCard label="Feedbacks" value={stats.recentFeedbackCount} icon="feedback" />
       </div>
 
-      {/* Raccourci dernier client actif */}
+      {/* Raccourci dernier client actif → suivi */}
       {lastActiveClient && (
         <Link
-          href={`/coach/clients/${lastActiveClient.id}/program`}
+          href={`/coach/clients/${lastActiveClient.id}/tracking`}
           className="flex items-center gap-3 bg-[#d4ff00]/[0.05] border border-[#d4ff00]/15 rounded-xl p-4 hover:border-[#d4ff00]/30 transition-all min-h-[56px]"
         >
           <div className="w-10 h-10 rounded-xl bg-[#d4ff00]/10 flex items-center justify-center shrink-0">
@@ -130,7 +130,7 @@ export function CoachDashboardClient({
             {inactiveClients.map((client) => (
               <Link
                 key={client.id}
-                href={`/coach/clients/${client.id}/program`}
+                href={`/coach/clients/${client.id}/tracking`}
                 className="flex items-center gap-3 bg-[#1c1c1c] rounded-xl border border-[#2a2a2a] hover:border-[#333] p-3 transition-all min-h-[52px]"
               >
                 <div className="w-8 h-8 rounded-lg bg-red-400/10 flex items-center justify-center shrink-0">
