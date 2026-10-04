@@ -88,9 +88,9 @@ export function TrackingView({ weeks, clientName }: TrackingViewProps) {
         }
         return stats
       })
-    const weekTotal = sessions.reduce((a, s) => a + s.totalExercises, 0)
-    const weekCompleted = sessions.reduce((a, s) => a + s.completedExercises, 0)
-    return { weekNumber: week.week_number, sessions, weekTotal, weekCompleted }
+    const weekTotalSessions = sessions.length
+    const weekCompletedSessions = sessions.filter(s => s.isDone).length
+    return { weekNumber: week.week_number, sessions, weekTotalSessions, weekCompletedSessions }
   })
 
   const globalPercent = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0
@@ -147,7 +147,7 @@ export function TrackingView({ weeks, clientName }: TrackingViewProps) {
         </h3>
         <div className="space-y-3">
           {weekData.map((week) => {
-            const weekPercent = week.weekTotal > 0 ? Math.round((week.weekCompleted / week.weekTotal) * 100) : 0
+            const weekPercent = week.weekTotalSessions > 0 ? Math.round((week.weekCompletedSessions / week.weekTotalSessions) * 100) : 0
             return (
               <div key={week.weekNumber} className="bg-[#1c1c1c] rounded-xl border border-[#2a2a2a] p-4">
                 <div className="flex items-center justify-between mb-2">
