@@ -1,9 +1,10 @@
 'use client'
 
-// Formulaire d'inscription sportif — crée un compte client assigné au coach par défaut (JB)
+// Formulaire d'inscription sportif — crée un compte client puis assigne au coach par défaut
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase/client'
+import { assignToDefaultCoach } from './actions'
 
 export function AthleteSignupForm() {
   const [firstName, setFirstName] = useState('')
@@ -28,7 +29,7 @@ export function AthleteSignupForm() {
     const supabase = createBrowserClient()
 
     // Créer le compte avec rôle client
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -51,24 +52,15 @@ export function AthleteSignupForm() {
       return
     }
 
-    // Assigner au premier coach disponible (JB pour le MVP)
-    if (signUpData.user) {
-      const { data: coach } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('role', 'coach')
-        .limit(1)
-        .single()
-
-      if (coach) {
-        await supabase
-          .from('profiles')
-          .update({ coach_id: coach.id })
-          .eq('id', signUpData.user.id)
-      }
+    // Assigner au coach par défaut via server action (bypass RLS)
+    const result = await assignToDefaultCoach()
+    if (result.error) {
+      setError(result.error)
+      setLoading(false)
+      return
     }
 
-    // Rediriger vers le wizard objectif trail
+    // Rediriger vers le wizard objectif
     router.push('/client/goal/new')
     router.refresh()
   }
