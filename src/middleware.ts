@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // Les pages /auth et /signup sont toujours accessibles
-  if (request.nextUrl.pathname.startsWith('/auth') || request.nextUrl.pathname === '/signup') {
+  if (request.nextUrl.pathname.startsWith('/auth') || request.nextUrl.pathname.startsWith('/signup')) {
     return response
   }
 
@@ -46,7 +46,7 @@ export async function middleware(request: NextRequest) {
       .single()
 
     // Déjà connecté sur /login ou /signup → rediriger vers le bon espace
-    if (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup') {
+    if (request.nextUrl.pathname === '/login' || request.nextUrl.pathname.startsWith('/signup')) {
       const target = profile?.role === 'coach' ? '/coach' : '/client'
       return NextResponse.redirect(new URL(target, request.url))
     }
