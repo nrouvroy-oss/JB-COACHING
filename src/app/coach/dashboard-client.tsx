@@ -64,12 +64,18 @@ export function CoachDashboardClient({
 
   return (
     <div className="space-y-6">
-      {/* En-tête simple */}
-      <div>
-        <p className="text-sm text-[#888]">Bonjour,</p>
-        <h1 className="text-xl font-bold text-white" style={{ fontFamily: 'Bricolage Grotesque' }}>
-          {coachFirstName}
-        </h1>
+      {/* Bannière avec photo de fond */}
+      <div className="relative h-28 rounded-2xl overflow-hidden">
+        <img
+          src="https://images.unsplash.com/photo-1549060279-7e168fcee0c2?w=800&q=80"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+        <div className="relative h-full flex flex-col justify-end p-4">
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Bricolage Grotesque' }}>Tableau de bord</h1>
+          <p className="text-sm text-[#888]">Bienvenue, {coachFirstName}</p>
+        </div>
       </div>
 
       {/* Cartes statistiques */}
