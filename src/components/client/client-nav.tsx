@@ -4,27 +4,15 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-interface Props {
-  // Afficher l'onglet "Mon objectif" seulement si le client a un objectif actif
-  hasGoal?: boolean
-}
-
-// Onglets fixes (toujours présents)
-const BASE_TABS = [
+// Onglets toujours visibles — "Mon objectif" redirige vers le wizard si pas d'objectif
+const TABS = [
   { href: '/client', label: 'Mon plan' },
+  { href: '/client/goal', label: 'Mon objectif' },
   { href: '/client/parcours', label: 'Mon parcours' },
 ]
 
-// Onglet objectif (conditionnel, inséré entre les deux onglets fixes)
-const GOAL_TAB = { href: '/client/goal', label: 'Mon objectif' }
-
-export function ClientNav({ hasGoal = false }: Props) {
+export function ClientNav() {
   const pathname = usePathname()
-
-  // Construire la liste des onglets selon la présence d'un objectif actif
-  const tabs = hasGoal
-    ? [BASE_TABS[0], GOAL_TAB, BASE_TABS[1]]
-    : BASE_TABS
 
   // Déterminer l'onglet actif
   function isActive(href: string) {
@@ -45,7 +33,7 @@ export function ClientNav({ hasGoal = false }: Props) {
   return (
     <div className="bg-[#1c1c1c] border-b border-[#2a2a2a]">
       <div className="max-w-lg mx-auto flex">
-        {tabs.map((tab) => (
+        {TABS.map((tab) => (
           <Link
             key={tab.href}
             href={tab.href}

@@ -15,25 +15,11 @@ export default async function ClientLayout({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Récupérer le prénom et vérifier si le client a un objectif actif en parallèle
-  const [profileResult, goalResult] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('first_name, full_name')
-      .eq('id', user.id)
-      .single(),
-    supabase
-      .from('race_goals')
-      .select('id')
-      .eq('client_id', user.id)
-      .in('status', ['draft', 'pending', 'active'])
-      .limit(1)
-      .single(),
-  ])
-
-  const profile = profileResult.data
-  // hasGoal = true si le client a au moins un objectif en cours (draft/pending/active)
-  const hasGoal = !!goalResult.data
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, full_name')
+    .eq('id', user.id)
+    .single()
 
   return (
     <div className="min-h-screen bg-[#1c1c1c]">
@@ -58,8 +44,8 @@ export default async function ClientLayout({
         </div>
       </nav>
 
-      {/* Onglets de navigation — "Mon objectif" apparaît si hasGoal */}
-      <ClientNav hasGoal={hasGoal} />
+      {/* Onglets de navigation — Mon objectif toujours visible */}
+      <ClientNav />
 
       <main className="max-w-lg mx-auto p-4">
         {children}
