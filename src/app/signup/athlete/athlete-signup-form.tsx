@@ -29,7 +29,7 @@ export function AthleteSignupForm() {
     const supabase = createBrowserClient()
 
     // Créer le compte avec rôle client
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -52,7 +52,14 @@ export function AthleteSignupForm() {
       return
     }
 
-    // Assigner au coach par défaut via server action (bypass RLS)
+    // Si pas de session → confirmation email requise
+    if (!signUpData.session) {
+      setError('Un email de confirmation a été envoyé. Vérifie ta boîte mail pour activer ton compte.')
+      setLoading(false)
+      return
+    }
+
+    // Créer le profil + assigner au coach par défaut via server action (bypass RLS)
     const result = await assignToDefaultCoach()
     if (result.error) {
       setError(result.error)

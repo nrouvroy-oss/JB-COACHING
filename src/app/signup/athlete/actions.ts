@@ -1,15 +1,36 @@
 'use server'
 
-// Action serveur pour assigner un sportif au coach par défaut après inscription
+// Action serveur pour créer le profil client et assigner au coach par défaut
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createServerClient } from '@/lib/supabase/server'
 
-export async function assignToDefaultCoach() {
+export async function ensureClientProfileAndAssign() {
   const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Non connecté' }
 
   const admin = createAdminClient()
+
+  // Vérifier si le profil existe déjà (créé par le trigger)
+  const { data: existing } = await admin
+    .from('profiles')
+    .select('id')
+    .eq('id', user.id)
+    .single()
+
+  if (!existing) {
+    // Créer le profil manuellement si le trigger n'a pas fonctionné
+    const { error: profileError } = await admin
+      .from('profiles')
+      .insert({
+        id: user.id,
+        email: user.email!,
+        full_name: user.user_metadata?.full_name || '',
+        role: 'client',
+      })
+
+    if (profileError) return { error: 'Erreur création profil : ' + profileError.message }
+  }
 
   // Trouver le premier coach (JB pour le MVP)
   const { data: coach } = await admin
@@ -32,3 +53,6 @@ export async function assignToDefaultCoach() {
 
   return {}
 }
+
+// Alias pour compatibilité
+export const assignToDefaultCoach = ensureClientProfileAndAssign

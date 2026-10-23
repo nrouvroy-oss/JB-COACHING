@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase/client'
+import { ensureCoachProfile } from './actions'
 
 export function SignupForm() {
   const [firstName, setFirstName] = useState('')
@@ -26,14 +27,15 @@ export function SignupForm() {
     }
 
     const supabase = createBrowserClient()
+    const fullName = `${firstName} ${lastName}`
 
-    // Créer le compte avec les métadonnées pour le trigger de création de profil
-    const { error: signUpError } = await supabase.auth.signUp({
+    // Créer le compte Supabase
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          full_name: `${firstName} ${lastName}`,
+          full_name: fullName,
           first_name: firstName,
           last_name: lastName,
           role: 'coach',
@@ -47,6 +49,21 @@ export function SignupForm() {
       } else {
         setError('Erreur lors de la création du compte')
       }
+      setLoading(false)
+      return
+    }
+
+    // Si pas de session → confirmation email requise
+    if (!signUpData.session) {
+      setError('Un email de confirmation a été envoyé. Vérifie ta boîte mail pour activer ton compte.')
+      setLoading(false)
+      return
+    }
+
+    // Créer le profil coach (au cas où le trigger DB ne fonctionne pas)
+    const profileResult = await ensureCoachProfile(signUpData.user!.id, email, fullName)
+    if (profileResult.error) {
+      setError(profileResult.error)
       setLoading(false)
       return
     }

@@ -339,7 +339,7 @@ export function WizardForm({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
       const supabase = createBrowserClient()
 
       // Créer le compte
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: signupEmail,
         password: signupPassword,
         options: {
@@ -358,7 +358,13 @@ export function WizardForm({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
         return
       }
 
-      // Assigner au coach par défaut
+      // Si pas de session → confirmation email requise
+      if (!signUpData.session) {
+        setError('Un email de confirmation a été envoyé. Vérifie ta boîte mail pour activer ton compte.')
+        return
+      }
+
+      // Créer le profil + assigner au coach par défaut
       const assignResult = await assignToDefaultCoach()
       if (assignResult.error) { setError(assignResult.error); return }
 
