@@ -28,6 +28,9 @@ export function AthleteSignupForm() {
 
     const supabase = createBrowserClient()
 
+    // Déconnecter toute session existante avant de créer un nouveau compte
+    await supabase.auth.signOut()
+
     // Créer le compte avec rôle client
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,

@@ -48,19 +48,24 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
+    // Pas de profil → laisser passer (le profil sera créé au prochain chargement)
+    if (!profile) {
+      return response
+    }
+
     // Déjà connecté sur /login ou /signup → rediriger vers le bon espace
     if (request.nextUrl.pathname === '/login' || request.nextUrl.pathname.startsWith('/signup')) {
-      const target = profile?.role === 'coach' ? '/coach' : '/client'
+      const target = profile.role === 'coach' ? '/coach' : '/client'
       return NextResponse.redirect(new URL(target, request.url))
     }
 
     // Coach qui tente d'accéder à l'espace client → rediriger vers son espace
-    if (profile?.role === 'coach' && request.nextUrl.pathname.startsWith('/client')) {
+    if (profile.role === 'coach' && request.nextUrl.pathname.startsWith('/client')) {
       return NextResponse.redirect(new URL('/coach', request.url))
     }
 
     // Client qui tente d'accéder à l'espace coach → rediriger vers son espace
-    if (profile?.role === 'client' && request.nextUrl.pathname.startsWith('/coach')) {
+    if (profile.role === 'client' && request.nextUrl.pathname.startsWith('/coach')) {
       return NextResponse.redirect(new URL('/client', request.url))
     }
   }

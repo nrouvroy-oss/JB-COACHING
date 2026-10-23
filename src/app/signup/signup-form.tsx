@@ -29,6 +29,9 @@ export function SignupForm() {
     const supabase = createBrowserClient()
     const fullName = `${firstName} ${lastName}`
 
+    // Déconnecter toute session existante avant de créer un nouveau compte
+    await supabase.auth.signOut()
+
     // Créer le compte Supabase
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
