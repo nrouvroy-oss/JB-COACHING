@@ -19,6 +19,11 @@ export async function ensureClientProfileAndAssign() {
     .single()
 
   if (!existing) {
+    // Vérifier que le rôle est bien client (pas un coach qui tente de se créer un profil client)
+    if (user.user_metadata?.role && user.user_metadata.role !== 'client') {
+      return { error: 'Rôle invalide pour cette inscription' }
+    }
+
     // Créer le profil manuellement si le trigger n'a pas fonctionné
     const { error: profileError } = await admin
       .from('profiles')

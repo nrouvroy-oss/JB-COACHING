@@ -64,7 +64,7 @@ export function SignupForm() {
     }
 
     // Créer le profil coach (au cas où le trigger DB ne fonctionne pas)
-    const profileResult = await ensureCoachProfile(signUpData.user!.id, email, fullName)
+    const profileResult = await ensureCoachProfile()
     if (profileResult.error) {
       setError(profileResult.error)
       setLoading(false)

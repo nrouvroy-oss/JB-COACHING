@@ -42,7 +42,9 @@ export async function GET(request: Request) {
           .single()
 
         if (!existing) {
-          const role = (user.user_metadata?.role as string) || 'client'
+          // Valider le rôle — seuls 'coach' et 'client' sont acceptés
+          const rawRole = user.user_metadata?.role as string
+          const role = rawRole === 'coach' ? 'coach' : 'client'
           await admin.from('profiles').insert({
             id: user.id,
             email: user.email!,
