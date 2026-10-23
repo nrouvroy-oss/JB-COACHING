@@ -57,7 +57,7 @@ export function LoginForm() {
 
     const supabase = createBrowserClient()
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/auth/set-password`,
+      redirectTo: `${window.location.origin}/auth/callback?next=/auth/set-password&type=reset`,
     })
 
     setLoading(false)

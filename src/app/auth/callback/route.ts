@@ -9,6 +9,7 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/auth/set-password'
+  const type = searchParams.get('type')
 
   if (code) {
     const cookieStore = await cookies()
@@ -53,7 +54,12 @@ export async function GET(request: Request) {
           })
         }
 
-        // Rediriger vers le bon espace selon le rôle (sauf si next est spécifié)
+        // Reset password → laisser l'utilisateur changer son mot de passe
+        if (type === 'reset') {
+          return NextResponse.redirect(`${origin}/auth/set-password`)
+        }
+
+        // Confirmation email → rediriger vers le bon espace selon le rôle
         if (next === '/auth/set-password') {
           const { data: profile } = await admin
             .from('profiles')
