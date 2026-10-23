@@ -3,45 +3,51 @@ export default function GuidePage() {
   const steps = [
     {
       number: '1',
-      title: 'Créer tes exercices',
-      description: 'Va dans l\'onglet Exercices et clique "+ Ajouter". Donne un nom, une catégorie, et ajoute une vidéo ou une image pour montrer le mouvement. Tu peux aussi assigner l\'exercice à un ou plusieurs programmes directement.',
-      tip: 'Tu peux filtrer par programme ou par catégorie pour retrouver tes exercices facilement.',
+      title: 'Complète ton profil',
+      description: 'Clique sur l\'icône profil en haut à droite. Renseigne ton prénom, nom et téléphone. C\'est ce que tes clients verront.',
+      tip: 'Un profil complet inspire confiance à tes clients.',
     },
     {
       number: '2',
-      title: 'Créer tes programmes',
-      description: 'Va dans l\'onglet Programmes et clique "+ Créer". Un programme c\'est un groupe d\'exercices réutilisable (ex: Muscu 3, TRX, Course). Ajoute les exercices de ton choix dans chaque programme.',
-      tip: 'Un même exercice peut être dans plusieurs programmes.',
+      title: 'Explore la bibliothèque d\'exercices',
+      description: 'L\'onglet Exercices contient 25 exercices de base avec vidéos. Tu peux les utiliser directement ou créer tes propres exercices avec "+ Ajouter".',
+      tip: 'Tu peux filtrer par catégorie ou par programme pour retrouver tes exercices.',
     },
     {
       number: '3',
-      title: 'Ajouter un client',
-      description: 'Va dans Clients et clique "+ Ajouter un client". Entre son prénom, nom et email. Le client recevra un email d\'invitation pour créer son mot de passe.',
-      tip: 'Tu ne gères pas le mot de passe — le client le choisit lui-même.',
+      title: 'Créer tes programmes d\'exercices',
+      description: 'Va dans l\'onglet Programmes et clique "+ Créer". Un programme c\'est un groupe d\'exercices réutilisable (ex: Muscu 3, TRX, Course). Ajoute les exercices de ton choix.',
+      tip: 'Un même exercice peut être dans plusieurs programmes.',
     },
     {
       number: '4',
-      title: 'Créer le plan d\'entraînement',
-      description: 'Clique sur un client → "Créer un plan". Ajoute des semaines, puis des séances dans chaque semaine. Pour chaque séance, clique "+ Programme" pour assigner un programme (Muscu 3, TRX...) ou "+ Exercice" pour ajouter des exercices individuels.',
-      tip: 'Tu peux personnaliser les exercices par séance : ajouter/retirer un exercice, indiquer les séries et répétitions. Le programme template ne change pas.',
+      title: 'Ajouter un client',
+      description: 'Va dans Clients et clique "+ Ajouter un client". Entre son prénom, nom et email. Le client recevra un email d\'invitation pour créer son mot de passe.',
+      tip: 'L\'offre gratuite permet jusqu\'à 3 clients. Au-delà, passe en Pro (24€/mois).',
     },
     {
       number: '5',
-      title: 'Ajouter les détails de la séance',
-      description: 'Clique "Modifier" sur une séance pour ajouter les instructions (Description) et les temps de repos (Récupération). Ces infos seront visibles par le client.',
-      tip: 'Tu peux écrire en texte libre — circuits, Tabata, intervalles, tout ce que tu veux.',
+      title: 'Créer le plan d\'entraînement',
+      description: 'Clique sur un client puis "Créer un plan". Ajoute des semaines, puis des séances dans chaque semaine. Pour chaque séance, assigne un programme ou des exercices individuels.',
+      tip: 'Tu peux personnaliser les exercices par séance : séries, répétitions, durée. Le programme template ne change pas.',
     },
     {
       number: '6',
-      title: 'Nouveau plan',
-      description: 'Quand un cycle est terminé, clique "+ Nouveau plan" en bas de la fiche client. L\'ancien plan est archivé automatiquement et visible dans la section "Plans archivés".',
-      tip: 'Tu peux aussi copier le plan d\'un autre client pour gagner du temps.',
+      title: 'Ajouter les détails des séances',
+      description: 'Clique "Modifier" sur une séance pour ajouter le type (muscu, cardio, trail...), la durée, la distance, le D+ et les instructions.',
+      tip: 'Ces détails sont visibles par le client dans son plan.',
     },
     {
       number: '7',
-      title: 'Le client s\'entraîne',
-      description: 'Le client se connecte, voit ses séances de la semaine, et clique "Go" pour lancer le mode entraînement. Les vidéos tournent en boucle, un chrono est intégré, et il peut naviguer entre les exercices.',
-      tip: 'Le client peut marquer ses séances comme terminées. Tu verras sa progression sur le tableau de bord.',
+      title: 'Suivre la progression',
+      description: 'Le tableau de bord affiche les clients actifs, inactifs, et les feedbacks récents. Clique sur un client puis "Suivi" pour voir sa progression détaillée.',
+      tip: 'Tu es notifié quand un client donne un feedback après sa séance.',
+    },
+    {
+      number: '8',
+      title: 'Gérer les objectifs course',
+      description: 'L\'onglet Objectifs affiche les demandes de préparation course/trail de tes clients. Consulte le dossier sportif, crée un plan adapté, et suis les feedbacks.',
+      tip: 'Les clients B2C (69€) arrivent directement dans cet onglet avec leur questionnaire rempli.',
     },
   ]
 
@@ -52,31 +58,31 @@ export default function GuidePage() {
     },
     {
       title: 'Mon plan',
-      description: 'L\'onglet "Mon plan" affiche les séances de la semaine en cours avec la progression. Chaque carte montre le nom de la séance et le programme associé.',
+      description: 'L\'onglet "Mon plan" affiche les séances de la semaine en cours. Chaque carte montre le type de séance, la durée, le D+ et le programme associé.',
     },
     {
       title: 'Lancer l\'entraînement',
-      description: 'Le bouton "Go" lance le mode plein écran : vidéo de chaque exercice en boucle, chronomètre intégré (chrono libre + minuteur 30s/1min/2min/3min), navigation Précédent/Suivant.',
+      description: 'Le bouton "Go" lance le mode plein écran : vidéo de chaque exercice en boucle, chronomètre intégré, navigation entre les exercices.',
     },
     {
-      title: 'Marquer comme fait',
-      description: 'En fin de séance, le client clique "Terminer" ou "Marquer comme terminée". La progression de la semaine se met à jour automatiquement.',
+      title: 'Donner son feedback',
+      description: 'Après chaque séance, le client peut noter son ressenti (RPE 1-10), sa sensation, et laisser un commentaire. Tu verras tout ça dans le suivi.',
+    },
+    {
+      title: 'Mon objectif',
+      description: 'Si le client prépare une course, l\'onglet "Mon objectif" affiche les infos de sa course et le statut de sa préparation.',
     },
     {
       title: 'Mot de passe oublié',
       description: 'Sur la page de connexion, le client clique "Mot de passe oublié ?" et reçoit un email pour en créer un nouveau.',
-    },
-    {
-      title: 'Mon parcours',
-      description: 'L\'onglet "Mon parcours" montre le plan en cours et l\'historique des plans terminés avec les stats de progression.',
     },
   ]
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white">Guide d&apos;utilisation</h1>
-        <p className="text-sm text-[#888] mt-1">Comment utiliser KTRY en 7 étapes</p>
+        <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Bricolage Grotesque' }}>Guide d&apos;utilisation</h1>
+        <p className="text-sm text-[#888] mt-1">Comment utiliser KTRY en 8 étapes</p>
       </div>
 
       {/* Guide coach */}
@@ -101,7 +107,7 @@ export default function GuidePage() {
 
       {/* Guide client */}
       <section>
-        <h2 className="text-lg font-bold text-white mb-2">Pour tes clients</h2>
+        <h2 className="text-lg font-bold text-white mb-2" style={{ fontFamily: 'Bricolage Grotesque' }}>Pour tes clients</h2>
         <p className="text-sm text-[#888] mb-4">Ce que tes clients voient et font de leur côté</p>
         <div className="space-y-3">
           {clientSteps.map((step, i) => (

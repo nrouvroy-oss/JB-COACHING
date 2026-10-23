@@ -131,7 +131,18 @@ export default async function CoachDashboard() {
     lastActiveClient = firstClient
   }
 
-  // ── 6. Objectifs sportifs ──
+  // ── 6. Checklist onboarding — compter les exercices perso du coach ──
+  const { count: customExerciseCount } = await supabase
+    .from('exercises')
+    .select('id', { count: 'exact', head: true })
+    .eq('coach_id', user!.id)
+
+  const { count: workoutCount } = await supabase
+    .from('workouts')
+    .select('id', { count: 'exact', head: true })
+    .eq('coach_id', user!.id)
+
+  // ── 7. Objectifs sportifs ──
   const { count: pendingObjectifs } = await supabase
     .from('race_goals')
     .select('id', { count: 'exact', head: true })
@@ -141,6 +152,13 @@ export default async function CoachDashboard() {
     .from('race_goals')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'active')
+
+  // Déterminer si le coach est nouveau (aucun client, aucun exercice perso)
+  const hasClients = clientCount > 0
+  const hasExercises = (customExerciseCount ?? 0) > 0
+  const hasWorkouts = (workoutCount ?? 0) > 0
+  const hasProgram = hasClients // Simplifié : s'il a un client, il a probablement un plan
+  const isNewCoach = !hasClients && !hasExercises && !hasWorkouts
 
   return (
     <CoachDashboardClient
@@ -155,6 +173,12 @@ export default async function CoachDashboard() {
       lastActiveClient={lastActiveClient}
       inactiveClients={inactiveClients}
       coachFirstName={coachFirstName}
+      onboarding={isNewCoach ? {
+        hasExercises,
+        hasWorkouts,
+        hasClients,
+        hasProgram,
+      } : undefined}
     />
   )
 }

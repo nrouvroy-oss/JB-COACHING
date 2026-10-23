@@ -30,6 +30,13 @@ interface FeedbackEntry {
   }[] | null
 }
 
+interface OnboardingState {
+  hasExercises: boolean
+  hasWorkouts: boolean
+  hasClients: boolean
+  hasProgram: boolean
+}
+
 interface CoachDashboardClientProps {
   stats: DashboardStats
   pendingObjectifs: number
@@ -38,6 +45,7 @@ interface CoachDashboardClientProps {
   lastActiveClient: Profile | null
   inactiveClients: InactiveClient[]
   coachFirstName?: string
+  onboarding?: OnboardingState
 }
 
 function getInitials(name: string): string {
@@ -64,7 +72,35 @@ export function CoachDashboardClient({
   lastActiveClient,
   inactiveClients,
   coachFirstName = 'Coach',
+  onboarding,
 }: CoachDashboardClientProps) {
+
+  // Étapes d'onboarding
+  const onboardingSteps = onboarding ? [
+    { done: onboarding.hasExercises, label: 'Créer ton premier exercice', href: '/coach/exercises', icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+    )},
+    { done: onboarding.hasWorkouts, label: 'Créer un programme d\'exercices', href: '/coach/workouts', icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+      </svg>
+    )},
+    { done: onboarding.hasClients, label: 'Ajouter ton premier client', href: '/coach/clients', icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM3 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 019.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+      </svg>
+    )},
+    { done: onboarding.hasProgram, label: 'Créer le plan d\'entraînement', href: '/coach/clients', icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+      </svg>
+    )},
+  ] : null
+
+  const completedSteps = onboardingSteps?.filter(s => s.done).length ?? 0
+  const totalSteps = onboardingSteps?.length ?? 0
 
   return (
     <div className="space-y-6">
@@ -77,10 +113,74 @@ export function CoachDashboardClient({
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
         <div className="relative h-full flex flex-col justify-end p-4">
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Bricolage Grotesque' }}>Tableau de bord</h1>
-          <p className="text-sm text-[#888]">Bienvenue, {coachFirstName}</p>
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Bricolage Grotesque' }}>
+            {onboarding ? 'Bienvenue sur KTRY !' : 'Tableau de bord'}
+          </h1>
+          <p className="text-sm text-[#888]">
+            {onboarding ? 'Configure ton espace en quelques étapes' : `Bienvenue, ${coachFirstName}`}
+          </p>
         </div>
       </div>
+
+      {/* Checklist onboarding */}
+      {onboardingSteps && (
+        <section className="bg-[#1c1c1c] rounded-2xl border border-[#2a2a2a] p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold text-white" style={{ fontFamily: 'Bricolage Grotesque' }}>
+              Premiers pas
+            </h2>
+            <span className="text-xs text-[#888]">{completedSteps}/{totalSteps}</span>
+          </div>
+          {/* Barre de progression */}
+          <div className="w-full h-1.5 bg-[#2a2a2a] rounded-full mb-5 overflow-hidden">
+            <div
+              className="h-full bg-[#d4ff00] rounded-full transition-all duration-500"
+              style={{ width: `${totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0}%` }}
+            />
+          </div>
+          <div className="space-y-2">
+            {onboardingSteps.map((step, i) => (
+              <Link
+                key={i}
+                href={step.href}
+                className={`flex items-center gap-3 rounded-xl p-3 min-h-[48px] transition-all ${
+                  step.done
+                    ? 'bg-[#d4ff00]/5 border border-[#d4ff00]/10'
+                    : 'bg-[#111] border border-[#222] hover:border-[#d4ff00]/30'
+                }`}
+              >
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                  step.done ? 'bg-[#d4ff00] text-black' : 'bg-[#2a2a2a] text-[#888]'
+                }`}>
+                  {step.done ? (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  ) : step.icon}
+                </div>
+                <span className={`text-sm font-medium flex-1 ${step.done ? 'text-[#888] line-through' : 'text-white'}`}>
+                  {step.label}
+                </span>
+                {!step.done && (
+                  <svg className="w-4 h-4 text-[#555] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                )}
+              </Link>
+            ))}
+          </div>
+          {/* Lien vers le guide */}
+          <Link
+            href="/coach/guide"
+            className="flex items-center justify-center gap-2 mt-4 text-xs text-[#888] hover:text-[#d4ff00] transition-colors min-h-[44px]"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+            </svg>
+            Lire le guide complet
+          </Link>
+        </section>
+      )}
 
       {/* Cartes statistiques */}
       <div className="grid grid-cols-3 gap-3">
