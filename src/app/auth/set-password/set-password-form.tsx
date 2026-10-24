@@ -34,7 +34,11 @@ export function SetPasswordForm() {
     })
 
     if (updateError) {
-      setError('Erreur lors de la mise à jour du mot de passe')
+      if (updateError.message.includes('session') || updateError.message.includes('token') || updateError.message.includes('not authenticated')) {
+        setError('Le lien a expiré. Demande à ton coach de renvoyer une invitation.')
+      } else {
+        setError('Erreur : ' + updateError.message)
+      }
       setLoading(false)
       return
     }

@@ -54,20 +54,13 @@ export async function GET(request: Request) {
           })
         }
 
-        // Reset password → laisser l'utilisateur changer son mot de passe
-        if (type === 'reset') {
+        // Reset password ou invitation → laisser l'utilisateur choisir son mot de passe
+        // Une invitation = l'utilisateur n'a jamais défini de mot de passe
+        // On redirige vers set-password dans ces cas :
+        // - type=reset (reset mdp explicite)
+        // - next=/auth/set-password (invitation client ou reset sans type)
+        if (type === 'reset' || next === '/auth/set-password') {
           return NextResponse.redirect(`${origin}/auth/set-password`)
-        }
-
-        // Confirmation email → rediriger vers le bon espace selon le rôle
-        if (next === '/auth/set-password') {
-          const { data: profile } = await admin
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single()
-          const target = profile?.role === 'coach' ? '/coach' : '/client'
-          return NextResponse.redirect(`${origin}${target}`)
         }
       }
 
