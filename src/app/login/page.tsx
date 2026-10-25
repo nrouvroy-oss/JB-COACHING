@@ -30,7 +30,7 @@ export default function LoginPage() {
             className="text-2xl font-extrabold text-white tracking-tight"
             style={{ fontFamily: 'Bricolage Grotesque' }}
           >
-            Connexion
+            Content de te voir
           </h1>
           <p className="text-[#555] mt-2 text-sm">Connectez-vous à votre espace</p>
         </div>
