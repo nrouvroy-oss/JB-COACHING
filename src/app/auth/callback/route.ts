@@ -13,6 +13,10 @@ export async function GET(request: Request) {
 
   if (code) {
     const cookieStore = await cookies()
+
+    // Stocker les cookies setés pendant l'échange pour les reporter sur la redirection
+    const responseCookies: { name: string; value: string; options: Record<string, unknown> }[] = []
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -22,9 +26,10 @@ export async function GET(request: Request) {
             return cookieStore.getAll()
           },
           setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
+            cookiesToSet.forEach(({ name, value, options }) => {
               cookieStore.set(name, value, options)
-            )
+              responseCookies.push({ name, value, options: options as Record<string, unknown> })
+            })
           },
         },
       }
@@ -54,17 +59,25 @@ export async function GET(request: Request) {
           })
         }
 
-        // Reset password ou invitation → laisser l'utilisateur choisir son mot de passe
-        // Une invitation = l'utilisateur n'a jamais défini de mot de passe
-        // On redirige vers set-password dans ces cas :
-        // - type=reset (reset mdp explicite)
-        // - next=/auth/set-password (invitation client ou reset sans type)
+        // Déterminer la destination
+        let destination = next
         if (type === 'reset' || next === '/auth/set-password') {
-          return NextResponse.redirect(`${origin}/auth/set-password`)
+          destination = '/auth/set-password'
         }
+
+        // Créer la redirection avec les cookies de session
+        const response = NextResponse.redirect(`${origin}${destination}`)
+        responseCookies.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options)
+        })
+        return response
       }
 
-      return NextResponse.redirect(`${origin}${next}`)
+      const response = NextResponse.redirect(`${origin}${next}`)
+      responseCookies.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, options)
+      })
+      return response
     }
   }
 
