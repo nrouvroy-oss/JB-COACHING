@@ -29,16 +29,20 @@ export function SetPasswordForm() {
     setLoading(true)
     const supabase = createBrowserClient()
 
+    // Vérifier que la session existe
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      setError('Session expirée. Demande à ton coach de renvoyer une invitation.')
+      setLoading(false)
+      return
+    }
+
     const { error: updateError } = await supabase.auth.updateUser({
       password,
     })
 
     if (updateError) {
-      if (updateError.message.includes('session') || updateError.message.includes('token') || updateError.message.includes('not authenticated')) {
-        setError('Le lien a expiré. Demande à ton coach de renvoyer une invitation.')
-      } else {
-        setError('Erreur : ' + updateError.message)
-      }
+      setError('Erreur : ' + updateError.message)
       setLoading(false)
       return
     }
