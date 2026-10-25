@@ -1,17 +1,20 @@
 'use client'
 
-// Onglets de navigation client — Mon plan / Mon objectif (conditionnel) / Mon parcours
+// Onglets de navigation client — Mon plan / Mon objectif (si objectif course) / Mon parcours
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-// Onglets toujours visibles — "Mon objectif" redirige vers le wizard si pas d'objectif
-const TABS = [
-  { href: '/client', label: 'Mon plan' },
-  { href: '/client/goal', label: 'Mon objectif' },
-  { href: '/client/parcours', label: 'Mon parcours' },
-]
+interface ClientNavProps {
+  hasGoal?: boolean
+}
 
-export function ClientNav() {
+export function ClientNav({ hasGoal = false }: ClientNavProps) {
+  // "Mon objectif" visible uniquement si le client a un objectif course
+  const TABS = [
+    { href: '/client', label: 'Mon plan' },
+    ...(hasGoal ? [{ href: '/client/goal', label: 'Mon objectif' }] : []),
+    { href: '/client/parcours', label: 'Mon parcours' },
+  ]
   const pathname = usePathname()
 
   // Déterminer l'onglet actif

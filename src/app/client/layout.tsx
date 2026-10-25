@@ -21,6 +21,16 @@ export default async function ClientLayout({
     .eq('id', user.id)
     .single()
 
+  // Vérifier si le client a un objectif course (pour afficher ou non l'onglet)
+  const { data: goalExists } = await supabase
+    .from('race_goals')
+    .select('id')
+    .eq('client_id', user.id)
+    .in('status', ['draft', 'pending', 'active', 'completed'])
+    .limit(1)
+
+  const hasGoal = (goalExists?.length ?? 0) > 0
+
   return (
     <div className="min-h-screen bg-[#1c1c1c]">
       {/* Barre du haut — logo + déconnexion */}
@@ -44,8 +54,8 @@ export default async function ClientLayout({
         </div>
       </nav>
 
-      {/* Onglets de navigation — Mon objectif toujours visible */}
-      <ClientNav />
+      {/* Onglets de navigation — Mon objectif uniquement si objectif course */}
+      <ClientNav hasGoal={hasGoal} />
 
       <main className="max-w-lg mx-auto p-4">
         {children}
