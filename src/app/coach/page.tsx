@@ -142,22 +142,35 @@ export default async function CoachDashboard() {
     .select('id', { count: 'exact', head: true })
     .eq('coach_id', user!.id)
 
-  // ── 7. Objectifs sportifs ──
-  const { count: pendingObjectifs } = await supabase
-    .from('race_goals')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'pending')
+  // ── 7. Objectifs sportifs — filtrés par les clients de ce coach ──
+  const { count: pendingObjectifs } = myClientIds.length > 0
+    ? await supabase
+        .from('race_goals')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pending')
+        .in('client_id', myClientIds)
+    : { count: 0 }
 
-  const { count: activeObjectifs } = await supabase
-    .from('race_goals')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'active')
+  const { count: activeObjectifs } = myClientIds.length > 0
+    ? await supabase
+        .from('race_goals')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'active')
+        .in('client_id', myClientIds)
+    : { count: 0 }
 
   // Déterminer si le coach est nouveau (aucun client, aucun exercice perso)
   const hasClients = clientCount > 0
   const hasExercises = (customExerciseCount ?? 0) > 0
   const hasWorkouts = (workoutCount ?? 0) > 0
-  const hasProgram = hasClients // Simplifié : s'il a un client, il a probablement un plan
+  // Vérifier si le coach a créé au moins un plan d'entraînement
+  const { count: programCount } = myClientIds.length > 0
+    ? await supabase
+        .from('programs')
+        .select('id', { count: 'exact', head: true })
+        .in('client_id', myClientIds)
+    : { count: 0 }
+  const hasProgram = (programCount ?? 0) > 0
   const isNewCoach = !hasClients && !hasExercises && !hasWorkouts
 
   return (
