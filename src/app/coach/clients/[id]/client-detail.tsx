@@ -6,11 +6,12 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
-import { updateClientProfile, deleteClient } from './actions'
+import { updateClientProfile, deleteClient, resendInvitation } from './actions'
 import type { Profile } from '@/lib/types'
 
 interface ClientDetailProps {
   client: Profile
+  emailConfirmed?: boolean
 }
 
 function calculateAge(birthDate: string): number {
@@ -31,7 +32,8 @@ function getInitials(client: Profile): string {
   return (client.full_name?.[0] ?? '?').toUpperCase()
 }
 
-export function ClientDetail({ client }: ClientDetailProps) {
+export function ClientDetail({ client, emailConfirmed = true }: ClientDetailProps) {
+  const [email, setEmail] = useState(client.email ?? '')
   const [firstName, setFirstName] = useState(client.first_name ?? '')
   const [lastName, setLastName] = useState(client.last_name ?? '')
   const [phone, setPhone] = useState(client.phone ?? '')
@@ -44,6 +46,8 @@ export function ClientDetail({ client }: ClientDetailProps) {
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [resending, setResending] = useState(false)
+  const [resendMsg, setResendMsg] = useState('')
   const router = useRouter()
 
   async function handleSave(e: React.FormEvent) {
@@ -53,7 +57,7 @@ export function ClientDetail({ client }: ClientDetailProps) {
     setError('')
     const fullName = `${firstName} ${lastName}`.trim()
     const result = await updateClientProfile(client.id, {
-      first_name: firstName.trim(), last_name: lastName.trim(), full_name: fullName,
+      email: email.trim(), first_name: firstName.trim(), last_name: lastName.trim(), full_name: fullName,
       phone: phone.trim() || null, birth_date: birthDate || null, gender: gender || null,
       height_cm: heightCm ? parseInt(heightCm) : null, weight_kg: weightKg ? parseFloat(weightKg) : null,
       objective: objective || null, notes: notes.trim() || null,
@@ -75,7 +79,12 @@ export function ClientDetail({ client }: ClientDetailProps) {
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-white truncate">{name}</h1>
           <p className="text-sm text-[#888] truncate">{client.email}</p>
-          <p className="text-xs text-[#666]">Inscrit le {formatDate(client.created_at)}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-[#666]">Inscrit le {formatDate(client.created_at)}</p>
+            {!emailConfirmed && (
+              <span className="text-[10px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded-full font-medium">En attente</span>
+            )}
+          </div>
         </div>
         <Link
           href={`/coach/clients/${client.id}/program`}
@@ -102,6 +111,27 @@ export function ClientDetail({ client }: ClientDetailProps) {
               <Input label="Prénom" id="first_name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
               <Input label="Nom" id="last_name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
             </div>
+            <Input label="Email" id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            {!emailConfirmed && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={resending}
+                  onClick={async () => {
+                    setResending(true)
+                    setResendMsg('')
+                    const result = await resendInvitation(client.id)
+                    setResending(false)
+                    if (result.error) setResendMsg(result.error)
+                    else setResendMsg('Invitation renvoyée !')
+                  }}
+                  className="text-xs text-[#d4ff00] hover:text-[#e8ff66] font-medium transition-colors disabled:opacity-50"
+                >
+                  {resending ? 'Envoi...' : 'Renvoyer l\'invitation'}
+                </button>
+                {resendMsg && <span className="text-xs text-[#888]">{resendMsg}</span>}
+              </div>
+            )}
             <Input label="Téléphone" id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="06 12 34 56 78" />
             <div>
               <Input label="Date de naissance" id="birth_date" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} />
