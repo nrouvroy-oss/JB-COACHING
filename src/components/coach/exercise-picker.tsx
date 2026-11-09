@@ -15,9 +15,9 @@ interface ExercisePickerProps {
 
 export function ExercisePicker({ exercises, onPick, onClose }: ExercisePickerProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [sets, setSets] = useState(3)
-  const [reps, setReps] = useState('10')
-  const [restSeconds, setRestSeconds] = useState(60)
+  const [sets, setSets] = useState(0)
+  const [reps, setReps] = useState('0')
+  const [restSeconds, setRestSeconds] = useState(0)
   const [coachNotes, setCoachNotes] = useState('')
   const [durationSeconds, setDurationSeconds] = useState('')
   const [search, setSearch] = useState('')
@@ -35,7 +35,7 @@ export function ExercisePicker({ exercises, onPick, onClose }: ExercisePickerPro
       <Modal title={`Ajouter : ${selected.name}`} onClose={onClose}>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Séries" id="sets" type="number" value={sets} onChange={(e) => setSets(Number(e.target.value))} min={1} />
+            <Input label="Séries" id="sets" type="number" value={sets} onChange={(e) => setSets(Number(e.target.value))} min={0} />
             <Input label="Répétitions" id="reps" value={reps} onChange={(e) => setReps(e.target.value)} placeholder="10 ou 8-12" />
             <Input label="Repos (sec)" id="rest" type="number" value={restSeconds} onChange={(e) => setRestSeconds(Number(e.target.value))} min={0} step={15} />
             <Input label="Durée (sec)" id="duration" type="number" value={durationSeconds} onChange={(e) => setDurationSeconds(e.target.value)} min={0} step={5} placeholder="Optionnel" />
