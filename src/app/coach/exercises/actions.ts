@@ -11,16 +11,6 @@ export async function deleteExercise(id: string) {
 
   const supabase = await createServerClient()
 
-  // Vérifier que ce n'est pas un exercice standard (coach_id = NULL)
-  const { data: exercise } = await supabase
-    .from('exercises')
-    .select('coach_id')
-    .eq('id', id)
-    .single()
-
-  if (!exercise) return { error: 'Exercice introuvable' }
-  if (exercise.coach_id === null) return { error: 'Impossible de supprimer un exercice standard' }
-
   const { error } = await supabase.from('exercises').delete().eq('id', id)
 
   if (error) return { error: 'Erreur lors de la suppression' }
