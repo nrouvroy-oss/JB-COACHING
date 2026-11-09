@@ -53,21 +53,21 @@ export async function resendInvitation(clientId: string) {
   const { data: client } = await admin.from('profiles').select('email, full_name, first_name, last_name').eq('id', clientId).single()
   if (!client) return { error: 'Client introuvable' }
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'
+
   const { error } = await admin.auth.admin.inviteUserByEmail(client.email, {
     data: { full_name: client.full_name, first_name: client.first_name, last_name: client.last_name, role: 'client' },
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/auth/set-password`,
+    redirectTo: `${appUrl}/auth/callback?type=invite`,
   })
 
   if (error) {
     if (error.message.includes('already')) {
-      // Le user existe déjà — envoyer un reset password à la place
-      const { error: resetError } = await admin.auth.admin.generateLink({
-        type: 'magiclink',
-        email: client.email,
-        options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/auth/set-password` },
+      const supabase = createAdminClient()
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(client.email, {
+        redirectTo: `${appUrl}/auth/callback?type=reset`,
       })
       if (resetError) return { error: `Erreur: ${resetError.message}` }
-      return { info: 'Un lien de connexion a été envoyé' }
+      return { info: 'Un lien pour choisir le mot de passe a été envoyé' }
     }
     return { error: `Erreur: ${error.message}` }
   }

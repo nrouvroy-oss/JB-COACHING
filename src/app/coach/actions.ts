@@ -62,7 +62,7 @@ export async function createClient(formData: FormData) {
   const admin = createAdminClient()
   const { data: newUser, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
     data: { full_name: fullName, first_name: firstName, last_name: lastName, role: 'client' },
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/auth/set-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'}/auth/callback?type=invite`,
   })
 
   if (inviteError) {
