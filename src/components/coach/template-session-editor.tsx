@@ -12,6 +12,7 @@ import {
   removeExerciseFromTemplate,
   updateTemplateExercise,
   assignWorkoutToTemplateSession,
+  importWorkoutToTemplate,
 } from '@/app/coach/programs/[id]/actions'
 import type { SessionWithExercises, Exercise } from '@/lib/types'
 
@@ -230,58 +231,78 @@ export function TemplateSessionEditor({ session, sessionNumber, exercises, progr
         )
       })()}
 
-      {/* Exercices individuels de la séance */}
-      {session.session_exercises.length > 0 ? (
-        <div className="space-y-2">
-          {[...session.session_exercises]
-            .sort((a, b) => a.order_index - b.order_index)
-            .map((se) => (
-              <div key={se.id} className="bg-[#1c1c1c] p-3 rounded-xl border border-[#2a2a2a]">
-                {editingExerciseId === se.id ? (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-white">{se.exercise.name}</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <label className="text-xs text-[#888]">Séries</label>
-                        <input type="number" value={editSets} onChange={(e) => setEditSets(Number(e.target.value))} min={1} className="w-full px-2 py-1 bg-[#242424] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00]" />
-                      </div>
-                      <div>
-                        <label className="text-xs text-[#888]">Reps</label>
-                        <input value={editReps} onChange={(e) => setEditReps(e.target.value)} className="w-full px-2 py-1 bg-[#242424] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00]" />
-                      </div>
-                      <div>
-                        <label className="text-xs text-[#888]">Repos (s)</label>
-                        <input type="number" value={editRest} onChange={(e) => setEditRest(Number(e.target.value))} min={0} step={15} className="w-full px-2 py-1 bg-[#242424] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00]" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs text-[#888]">Notes</label>
-                      <input value={editNotes} onChange={(e) => setEditNotes(e.target.value)} className="w-full px-2 py-1 bg-[#242424] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#777]" placeholder="Consignes..." />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={handleSaveEdit}>Enregistrer</Button>
-                      <Button size="sm" variant="secondary" onClick={() => setEditingExerciseId(null)}>Annuler</Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-white">{se.exercise.name}</p>
-                      <p className="text-xs text-[#888]">
-                        {se.sets}x{se.reps} • repos {se.rest_seconds}s
-                        {se.coach_notes && ` • ${se.coach_notes}`}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
-                      <button onClick={() => startEditing(se)} className="text-[#d4ff00] hover:text-[#c2ee00] text-xs px-2 py-1 transition-colors">Modifier</button>
-                      <button onClick={() => handleRemoveExercise(se.id)} className="text-red-400 hover:text-red-300 text-xs px-2 py-1 transition-colors">Suppr.</button>
-                    </div>
+      {/* Exercices individuels (groupés par programme source si importés) */}
+      {session.session_exercises.length > 0 ? (() => {
+        const sorted = [...session.session_exercises].sort((a, b) => a.order_index - b.order_index)
+        const groups: { name: string | null; exercises: typeof sorted }[] = []
+        let currentGroup: string | null | undefined = undefined
+        for (const se of sorted) {
+          const groupName = (se as any).source_workout_name ?? null
+          if (groupName !== currentGroup) {
+            groups.push({ name: groupName, exercises: [] })
+            currentGroup = groupName
+          }
+          groups[groups.length - 1].exercises.push(se)
+        }
+        return (
+          <div className="space-y-2">
+            {groups.map((group, gi) => (
+              <div key={gi}>
+                {group.name && (
+                  <div className="px-3 py-1.5 mb-1">
+                    <span className="text-[11px] font-medium text-[#d4ff00]">{group.name}</span>
                   </div>
                 )}
+                {group.exercises.map((se) => (
+                  <div key={se.id} className="bg-[#1c1c1c] p-3 rounded-xl border border-[#2a2a2a]">
+                    {editingExerciseId === se.id ? (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-white">{se.exercise.name}</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <label className="text-xs text-[#888]">Séries</label>
+                            <input type="number" value={editSets} onChange={(e) => setEditSets(Number(e.target.value))} min={0} className="w-full px-2 py-1 bg-[#242424] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00]" />
+                          </div>
+                          <div>
+                            <label className="text-xs text-[#888]">Reps</label>
+                            <input value={editReps} onChange={(e) => setEditReps(e.target.value)} className="w-full px-2 py-1 bg-[#242424] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00]" />
+                          </div>
+                          <div>
+                            <label className="text-xs text-[#888]">Repos (s)</label>
+                            <input type="number" value={editRest} onChange={(e) => setEditRest(Number(e.target.value))} min={0} step={15} className="w-full px-2 py-1 bg-[#242424] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00]" />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs text-[#888]">Notes</label>
+                          <input value={editNotes} onChange={(e) => setEditNotes(e.target.value)} className="w-full px-2 py-1 bg-[#242424] border border-[#2a2a2a] rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-[#d4ff00] placeholder:text-[#777]" placeholder="Consignes..." />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={handleSaveEdit}>Enregistrer</Button>
+                          <Button size="sm" variant="secondary" onClick={() => setEditingExerciseId(null)}>Annuler</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-white">{se.exercise.name}</p>
+                          <p className="text-xs text-[#888]">
+                            {se.sets}x{se.reps} • repos {se.rest_seconds}s
+                            {se.coach_notes && ` • ${se.coach_notes}`}
+                          </p>
+                        </div>
+                        <div className="flex gap-1">
+                          <button onClick={() => startEditing(se)} className="text-[#d4ff00] hover:text-[#c2ee00] text-xs px-2 py-1 transition-colors">Modifier</button>
+                          <button onClick={() => handleRemoveExercise(se.id)} className="text-red-400 hover:text-red-300 text-xs px-2 py-1 transition-colors">Suppr.</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             ))}
-        </div>
-      ) : (
+          </div>
+        )
+      })() : (
         <p className="text-sm text-[#777] italic">Aucun exercice dans cette séance</p>
       )}
 
@@ -294,11 +315,12 @@ export function TemplateSessionEditor({ session, sessionNumber, exercises, progr
         />
       )}
 
-      {/* Modal de sélection de programme */}
+      {/* Modal d'import de programme */}
       {showWorkoutPicker && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4" onClick={() => setShowWorkoutPicker(false)}>
           <div className="bg-[#1c1c1c] rounded-xl border border-[#2a2a2a] p-4 w-full max-w-sm max-h-80 overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <h3 className="text-sm font-semibold text-white mb-3">Assigner un programme</h3>
+            <h3 className="text-sm font-semibold text-white mb-3">Importer un programme</h3>
+            <p className="text-xs text-[#666] mb-3">Les exercices seront copiés dans la séance</p>
             {workouts.length === 0 ? (
               <p className="text-sm text-[#777] text-center py-4">Aucun programme créé</p>
             ) : (
@@ -307,15 +329,11 @@ export function TemplateSessionEditor({ session, sessionNumber, exercises, progr
                   <button
                     key={w.id}
                     onClick={async () => {
-                      await assignWorkoutToTemplateSession(session.id, w.id, programId)
+                      await importWorkoutToTemplate(session.id, w.id, programId)
                       setShowWorkoutPicker(false)
                       router.refresh()
                     }}
-                    className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${
-                      (session as any).workout_id === w.id
-                        ? 'bg-[#d4ff00]/10 text-[#d4ff00]'
-                        : 'hover:bg-[#242424] text-white'
-                    }`}
+                    className="w-full text-left px-3 py-2.5 rounded-lg transition-colors hover:bg-[#242424] text-white"
                   >
                     <p className="text-sm font-medium">{w.name}</p>
                     <p className="text-xs text-[#888]">{w.workout_exercises?.length ?? 0} exercice{(w.workout_exercises?.length ?? 0) > 1 ? 's' : ''}</p>

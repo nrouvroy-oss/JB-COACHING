@@ -85,6 +85,8 @@ export interface SessionExercise {
   duration_seconds?: number | null
   coach_notes: string
   order_index: number
+  source_workout_id?: string | null
+  source_workout_name?: string | null
 }
 
 // Programme réutilisable (Muscu 3, TRX, Vélo...)

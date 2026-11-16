@@ -152,6 +152,55 @@ export async function removeExerciseFromTemplate(sessionExerciseId: string, prog
   return {}
 }
 
+// Importe les exercices d'un programme (workout) dans une séance de modèle
+export async function importWorkoutToTemplate(sessionId: string, workoutId: string, programId: string) {
+  const user = await requireCoach()
+  if (!user) return { error: 'Non autorisé' }
+
+  const supabase = await createServerClient()
+
+  const { data: workout } = await supabase
+    .from('workouts')
+    .select('name, workout_exercises(*, exercise:exercises(id))')
+    .eq('id', workoutId)
+    .single()
+
+  if (!workout) return { error: 'Programme introuvable' }
+
+  const { data: existing } = await supabase
+    .from('session_exercises')
+    .select('order_index')
+    .eq('session_id', sessionId)
+    .order('order_index', { ascending: false })
+    .limit(1)
+
+  let nextIndex = (existing?.[0]?.order_index ?? -1) + 1
+
+  const sorted = [...(workout.workout_exercises || [])].sort(
+    (a: { order_index: number }, b: { order_index: number }) => a.order_index - b.order_index
+  )
+
+  for (const we of sorted) {
+    const exerciseId = Array.isArray(we.exercise) ? we.exercise[0]?.id : (we.exercise as any)?.id
+    if (!exerciseId) continue
+
+    await supabase.from('session_exercises').insert({
+      session_id: sessionId,
+      exercise_id: exerciseId,
+      sets: 0,
+      reps: '0',
+      rest_seconds: 0,
+      coach_notes: we.coach_notes || '',
+      order_index: nextIndex++,
+      source_workout_id: workoutId,
+      source_workout_name: workout.name,
+    })
+  }
+
+  revalidatePath(`/coach/programs/${programId}`)
+  return {}
+}
+
 // Met à jour les paramètres d'un exercice dans une séance de modèle
 export async function updateTemplateExercise(
   sessionExerciseId: string,
