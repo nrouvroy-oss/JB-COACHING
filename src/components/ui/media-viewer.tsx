@@ -24,6 +24,7 @@ export function MediaViewer({ url, className = '' }: MediaViewerProps) {
       <video
         src={url}
         controls
+        muted
         playsInline
         preload="metadata"
         className={`rounded-xl w-full ${className}`}
