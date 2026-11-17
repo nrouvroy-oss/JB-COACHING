@@ -114,6 +114,18 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         />
       )}
 
+      {/* Bouton Commencer pour les exercices individuels (mode entraînement) */}
+      {exercises.length > 0 && exercises.some((se: any) => se.exercise?.video_url) && !workoutExercises.length && (
+        <div className="mt-4 mb-2">
+          <Link
+            href={`/client/session/${sessionId}/train`}
+            className="block w-full bg-[#d4ff00] text-black text-sm font-bold px-4 py-3 rounded-xl hover:bg-[#c2ee00] transition-colors text-center"
+          >
+            Commencer l&apos;entraînement ▶
+          </Link>
+        </div>
+      )}
+
       {/* Exercices individuels de la séance (avec suivi / checkbox) */}
       {exercises.length > 0 && (
         <div className="space-y-3 mt-4">
