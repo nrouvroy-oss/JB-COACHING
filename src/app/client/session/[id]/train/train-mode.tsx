@@ -29,11 +29,90 @@ const TIMER_PRESETS = [
   { label: '1\'', seconds: 60 },
   { label: '2\'', seconds: 120 },
   { label: '3\'', seconds: 180 },
-  { label: '5\'', seconds: 300 },
-  { label: '10\'', seconds: 600 },
-  { label: '20\'', seconds: 1200 },
-  { label: '30\'', seconds: 1800 },
 ]
+
+function TimerPicker({ onStart, onClose }: { onStart: (seconds: number) => void; onClose: () => void }) {
+  const [minutes, setMinutes] = useState(5)
+  const [seconds, setSeconds] = useState(0)
+  const minutesRef = useRef<HTMLDivElement>(null)
+  const secondsRef = useRef<HTMLDivElement>(null)
+  const ITEM_H = 44
+
+  useEffect(() => {
+    minutesRef.current?.scrollTo({ top: minutes * ITEM_H, behavior: 'auto' })
+    secondsRef.current?.scrollTo({ top: seconds * ITEM_H, behavior: 'auto' })
+  }, [])
+
+  function handleScroll(ref: React.RefObject<HTMLDivElement | null>, setter: (v: number) => void) {
+    if (!ref.current) return
+    const idx = Math.round(ref.current.scrollTop / ITEM_H)
+    setter(idx)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/80 z-[60] flex items-end justify-center" onClick={onClose}>
+      <div className="bg-[#1a1a1a] rounded-t-2xl w-full max-w-md p-6 pb-8" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-white font-bold text-lg">Compte à rebours</h3>
+          <button onClick={onClose} className="text-[#888] text-sm min-h-[44px] px-2">Annuler</button>
+        </div>
+
+        <div className="flex items-center justify-center gap-2 mb-6">
+          {/* Molette minutes */}
+          <div className="relative h-[132px] w-20 overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-[44px] bg-gradient-to-b from-[#1a1a1a] to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-[44px] bg-gradient-to-t from-[#1a1a1a] to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-x-0 top-[44px] h-[44px] border-y border-[#d4ff00]/30 z-10 pointer-events-none" />
+            <div
+              ref={minutesRef}
+              className="h-full overflow-y-auto scrollbar-hide snap-y snap-mandatory"
+              style={{ scrollSnapType: 'y mandatory' }}
+              onScroll={() => handleScroll(minutesRef, setMinutes)}
+            >
+              <div style={{ height: ITEM_H }} />
+              {Array.from({ length: 91 }, (_, i) => (
+                <div key={i} className="snap-center flex items-center justify-center text-white text-2xl font-bold tabular-nums" style={{ height: ITEM_H, fontFamily: 'Bricolage Grotesque' }}>
+                  {i}
+                </div>
+              ))}
+              <div style={{ height: ITEM_H }} />
+            </div>
+          </div>
+          <span className="text-[#888] text-sm font-medium">min</span>
+
+          {/* Molette secondes */}
+          <div className="relative h-[132px] w-20 overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-[44px] bg-gradient-to-b from-[#1a1a1a] to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-[44px] bg-gradient-to-t from-[#1a1a1a] to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-x-0 top-[44px] h-[44px] border-y border-[#d4ff00]/30 z-10 pointer-events-none" />
+            <div
+              ref={secondsRef}
+              className="h-full overflow-y-auto scrollbar-hide snap-y snap-mandatory"
+              style={{ scrollSnapType: 'y mandatory' }}
+              onScroll={() => handleScroll(secondsRef, setSeconds)}
+            >
+              <div style={{ height: ITEM_H }} />
+              {Array.from({ length: 60 }, (_, i) => (
+                <div key={i} className="snap-center flex items-center justify-center text-white text-2xl font-bold tabular-nums" style={{ height: ITEM_H, fontFamily: 'Bricolage Grotesque' }}>
+                  {String(i).padStart(2, '0')}
+                </div>
+              ))}
+              <div style={{ height: ITEM_H }} />
+            </div>
+          </div>
+          <span className="text-[#888] text-sm font-medium">sec</span>
+        </div>
+
+        <button
+          onClick={() => { const total = minutes * 60 + seconds; if (total > 0) onStart(total) }}
+          className="w-full py-3.5 min-h-[48px] rounded-xl text-sm font-bold bg-[#d4ff00] text-black hover:bg-[#c2ee00] transition-all active:scale-[0.97]"
+        >
+          Démarrer {minutes > 0 ? `${minutes}min` : ''}{seconds > 0 ? `${String(seconds).padStart(2, '0')}s` : minutes > 0 ? '' : '0s'}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function playBeep() {
   try {
@@ -68,6 +147,7 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
   const [timerMode, setTimerMode] = useState<'idle' | 'stopwatch' | 'countdown'>('idle')
   const [timerSeconds, setTimerSeconds] = useState(0)
   const [timerRunning, setTimerRunning] = useState(false)
+  const [showPicker, setShowPicker] = useState(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const total = exercises.length
@@ -105,6 +185,16 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
 
   return (
     <div className="fixed inset-0 bg-[#0a0a0a] z-50 flex flex-col">
+      <style>{`.scrollbar-hide::-webkit-scrollbar { display: none } .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
+
+      {/* Molette de sélection du temps */}
+      {showPicker && (
+        <TimerPicker
+          onStart={(s) => { setShowPicker(false); startCountdown(s) }}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
+
       {/* Modal feedback post-séance — affiché après avoir cliqué Terminer */}
       {showFeedback && (
         <SessionFeedbackModal
@@ -192,27 +282,21 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
         {/* Timer */}
         <div className="mb-4">
           {timerMode === 'idle' ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-center gap-2">
-                <button onClick={startStopwatch} className="px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold bg-[#1a1a1a] text-white hover:bg-[#242424] transition-colors flex items-center gap-1.5">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Chrono
+            <div className="flex items-center justify-center gap-2">
+              <button onClick={startStopwatch} className="px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold bg-[#1a1a1a] text-white hover:bg-[#242424] transition-colors flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Chrono
+              </button>
+              {TIMER_PRESETS.map(p => (
+                <button key={p.seconds} onClick={() => startCountdown(p.seconds)} className="px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold bg-[#1a1a1a] text-[#d4ff00] hover:bg-[#242424] transition-colors">
+                  {p.label}
                 </button>
-                {TIMER_PRESETS.slice(0, 4).map(p => (
-                  <button key={p.seconds} onClick={() => startCountdown(p.seconds)} className="px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold bg-[#1a1a1a] text-[#d4ff00] hover:bg-[#242424] transition-colors">
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center justify-center gap-2">
-                {TIMER_PRESETS.slice(4).map(p => (
-                  <button key={p.seconds} onClick={() => startCountdown(p.seconds)} className="px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold bg-[#1a1a1a] text-[#d4ff00] hover:bg-[#242424] transition-colors">
-                    {p.label}
-                  </button>
-                ))}
-              </div>
+              ))}
+              <button onClick={() => setShowPicker(true)} className="w-11 min-h-[44px] rounded-xl text-lg font-bold bg-[#1a1a1a] text-[#d4ff00] hover:bg-[#242424] transition-colors flex items-center justify-center">
+                +
+              </button>
             </div>
           ) : (
             <div className="flex items-center justify-center gap-4">
