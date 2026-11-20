@@ -114,8 +114,8 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
         />
       )}
 
-      {/* Bouton Commencer pour les exercices individuels (mode entraînement) */}
-      {exercises.length > 0 && exercises.some((se: any) => se.exercise?.video_url) && !workoutExercises.length && (
+      {/* Bouton Commencer — toujours visible (chrono disponible même sans exercices) */}
+      {!workoutExercises.length && (
         <div className="mt-4 mb-2">
           <Link
             href={`/client/session/${sessionId}/train`}

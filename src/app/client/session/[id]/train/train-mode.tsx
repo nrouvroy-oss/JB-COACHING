@@ -29,6 +29,10 @@ const TIMER_PRESETS = [
   { label: '1\'', seconds: 60 },
   { label: '2\'', seconds: 120 },
   { label: '3\'', seconds: 180 },
+  { label: '5\'', seconds: 300 },
+  { label: '10\'', seconds: 600 },
+  { label: '20\'', seconds: 1200 },
+  { label: '30\'', seconds: 1800 },
 ]
 
 function playBeep() {
@@ -67,10 +71,11 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const total = exercises.length
-  const current = exercises[currentIndex]
+  const hasExercises = total > 0
+  const current = hasExercises ? exercises[currentIndex] : null
   const isFirst = currentIndex === 0
-  const isLast = currentIndex === total - 1
-  const progressPercent = ((currentIndex + 1) / total) * 100
+  const isLast = !hasExercises || currentIndex === total - 1
+  const progressPercent = hasExercises ? ((currentIndex + 1) / total) * 100 : 0
 
   const stopTimer = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current)
@@ -129,7 +134,7 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
           Quitter
         </Link>
         <p className="text-xs text-[#888] truncate max-w-[150px] text-center">{sessionName}</p>
-        <span className="text-xs text-[#888] tabular-nums min-w-[40px] text-right">{currentIndex + 1}/{total}</span>
+        <span className="text-xs text-[#888] tabular-nums min-w-[40px] text-right">{hasExercises ? `${currentIndex + 1}/${total}` : ''}</span>
       </div>
 
       {/* Barre de progression */}
@@ -137,9 +142,9 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
         <div className="h-full bg-[#d4ff00] transition-all duration-300" style={{ width: `${progressPercent}%` }} />
       </div>
 
-      {/* Zone vidéo */}
+      {/* Zone vidéo ou affichage séance sans exercices */}
       <div className="flex-1 flex flex-col min-h-0">
-        {current.exercise.video_url ? (
+        {current?.exercise.video_url ? (
           <div className="flex-1 flex items-center justify-center px-4 min-h-0">
             <video
               key={current.exercise.id}
@@ -147,6 +152,14 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
               autoPlay loop muted playsInline
               className="w-full max-h-full rounded-2xl object-contain"
             />
+          </div>
+        ) : !hasExercises ? (
+          <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+            <h2 className="text-2xl font-extrabold text-white mb-2" style={{ fontFamily: 'Bricolage Grotesque' }}>
+              {sessionName}
+            </h2>
+            {details && <p className="text-sm text-[#ccc] whitespace-pre-line mb-2">{details}</p>}
+            {recovery && <p className="text-sm text-[#d4ff00]">{recovery}</p>}
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center">
@@ -161,34 +174,45 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
 
       {/* Panneau bas */}
       <div className="shrink-0 bg-[#0a0a0a] px-4 pb-8 pt-4">
-        {/* Exercice */}
-        <div className="text-center mb-4">
-          <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: 'Bricolage Grotesque' }}>
-            {current.exercise.name}
-          </h2>
-          {(current.sets || current.reps) && (
-            <p className="text-lg font-bold text-[#d4ff00] mt-1 tabular-nums">
-              {current.sets && current.reps ? `${current.sets} × ${current.reps}` : current.sets || current.reps}
-            </p>
-          )}
-          {current.coach_notes && <p className="text-sm text-[#888] mt-1">{current.coach_notes}</p>}
-        </div>
+        {/* Exercice (masqué si pas d'exercices) */}
+        {current && (
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-extrabold text-white" style={{ fontFamily: 'Bricolage Grotesque' }}>
+              {current.exercise.name}
+            </h2>
+            {(current.sets || current.reps) && (
+              <p className="text-lg font-bold text-[#d4ff00] mt-1 tabular-nums">
+                {current.sets && current.reps ? `${current.sets} × ${current.reps}` : current.sets || current.reps}
+              </p>
+            )}
+            {current.coach_notes && <p className="text-sm text-[#888] mt-1">{current.coach_notes}</p>}
+          </div>
+        )}
 
         {/* Timer */}
         <div className="mb-4">
           {timerMode === 'idle' ? (
-            <div className="flex items-center justify-center gap-2">
-              <button onClick={startStopwatch} className="px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold bg-[#1a1a1a] text-white hover:bg-[#242424] transition-colors flex items-center gap-1.5">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Chrono
-              </button>
-              {TIMER_PRESETS.map(p => (
-                <button key={p.seconds} onClick={() => startCountdown(p.seconds)} className="px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold bg-[#1a1a1a] text-[#d4ff00] hover:bg-[#242424] transition-colors">
-                  {p.label}
+            <div className="space-y-2">
+              <div className="flex items-center justify-center gap-2">
+                <button onClick={startStopwatch} className="px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold bg-[#1a1a1a] text-white hover:bg-[#242424] transition-colors flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Chrono
                 </button>
-              ))}
+                {TIMER_PRESETS.slice(0, 4).map(p => (
+                  <button key={p.seconds} onClick={() => startCountdown(p.seconds)} className="px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold bg-[#1a1a1a] text-[#d4ff00] hover:bg-[#242424] transition-colors">
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                {TIMER_PRESETS.slice(4).map(p => (
+                  <button key={p.seconds} onClick={() => startCountdown(p.seconds)} className="px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold bg-[#1a1a1a] text-[#d4ff00] hover:bg-[#242424] transition-colors">
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
             <div className="flex items-center justify-center gap-4">
@@ -236,19 +260,20 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
 
         {/* Navigation */}
         <div className="flex gap-3">
-          <button
-            onClick={() => { if (!isFirst) setCurrentIndex(prev => prev - 1) }}
-            disabled={isFirst}
-            className={`flex-1 py-3.5 min-h-[48px] rounded-xl text-sm font-semibold transition-all ${
-              isFirst ? 'bg-[#1a1a1a] text-[#333] cursor-not-allowed' : 'bg-[#1a1a1a] text-white hover:bg-[#242424] active:scale-[0.97]'
-            }`}
-          >
-            Précédent
-          </button>
+          {hasExercises && (
+            <button
+              onClick={() => { if (!isFirst) setCurrentIndex(prev => prev - 1) }}
+              disabled={isFirst}
+              className={`flex-1 py-3.5 min-h-[48px] rounded-xl text-sm font-semibold transition-all ${
+                isFirst ? 'bg-[#1a1a1a] text-[#333] cursor-not-allowed' : 'bg-[#1a1a1a] text-white hover:bg-[#242424] active:scale-[0.97]'
+              }`}
+            >
+              Précédent
+            </button>
+          )}
           {isLast ? (
             <button
               onClick={async () => {
-                // Marquer la séance comme terminée puis afficher le modal feedback
                 setFinishing(true)
                 await toggleSession(sessionId, true)
                 setFinishing(false)
@@ -257,7 +282,7 @@ export function TrainMode({ sessionId, sessionName, workoutName, details, recove
               disabled={finishing}
               className="flex-1 py-3.5 min-h-[48px] rounded-xl text-sm font-bold bg-[#d4ff00] text-black hover:bg-[#c2ee00] transition-all disabled:opacity-50 active:scale-[0.97]"
             >
-              {finishing ? 'Enregistrement...' : 'Terminer'}
+              {finishing ? 'Enregistrement...' : 'Terminer la séance ✓'}
             </button>
           ) : (
             <button onClick={() => setCurrentIndex(prev => prev + 1)} className="flex-1 py-3.5 min-h-[48px] rounded-xl text-sm font-bold bg-[#d4ff00] text-black hover:bg-[#c2ee00] transition-all active:scale-[0.97]">

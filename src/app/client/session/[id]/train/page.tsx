@@ -62,7 +62,7 @@ export default async function TrainPage({ params }: { params: Promise<{ id: stri
       .filter((se: any) => se.exercise)
   }
 
-  if (trainExercises.length === 0) redirect(`/client/session/${sessionId}`)
+  // Plus de redirection : le mode entraînement fonctionne même sans exercices (chrono seul)
 
   return (
     <TrainMode
